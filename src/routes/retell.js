@@ -81,7 +81,7 @@ export default async function retellRoutes(fastify) {
   fastify.post('/webhook', async (request, reply) => {
     const { event, call } = request.body;
 
-    request.log.info({ event, callId: call?.call_id }, 'Retell webhook received');
+    console.log('WEBHOOK RECEIVED:', JSON.stringify(request.body, null, 2));
 
     try {
       if (event === 'call_started') {
@@ -90,16 +90,17 @@ export default async function retellRoutes(fastify) {
 
       if (event === 'call_ended') {
         // TODO: update lead status, trigger follow-up scheduling if email was captured
-        const phone = call?.to_number;
-        if (phone) {
-          // TODO: look up lead by phone and update status
-        }
       }
 
       if (event === 'call_analyzed') {
+        console.log('call_analysis raw:', JSON.stringify(call?.call_analysis, null, 2));
+        console.log('retell_llm_dynamic_variables raw:', JSON.stringify(call?.retell_llm_dynamic_variables, null, 2));
+
         // Retell puts extracted fields under call_analysis.custom_analysis_data
         const extracted = call?.call_analysis?.custom_analysis_data || {};
         const vars = call?.retell_llm_dynamic_variables || {};
+
+        console.log('extracted (custom_analysis_data):', JSON.stringify(extracted, null, 2));
 
         // Merge: extracted analysis takes precedence, dynamic vars fill gaps
         const lead = {
@@ -116,28 +117,33 @@ export default async function retellRoutes(fastify) {
           callbackTime:     extracted.callback_time,
         };
 
-        request.log.info({ callId: call?.call_id, ...lead }, 'Call analyzed');
+        console.log('owner_email found:', lead.ownerEmail, '| value:', JSON.stringify(lead.ownerEmail));
 
         const hasEmail = lead.ownerEmail && lead.ownerEmail !== 'none' && lead.ownerEmail.trim() !== '';
+        console.log('hasEmail:', hasEmail);
 
         if (hasEmail) {
+          console.log('Attempting to send follow-up email to:', lead.ownerEmail);
           try {
-            await sendPostCallFollowUp({ email: lead.ownerEmail, ownerName: lead.ownerName });
-            request.log.info({ ownerEmail: lead.ownerEmail }, 'Post-call follow-up email sent');
+            const followUpResult = await sendPostCallFollowUp({ email: lead.ownerEmail, ownerName: lead.ownerName });
+            console.log('Follow-up email result:', JSON.stringify(followUpResult, null, 2));
           } catch (err) {
-            request.log.error({ err, ownerEmail: lead.ownerEmail }, 'Failed to send post-call follow-up email');
+            console.error('RESEND ERROR (follow-up):', err?.message, JSON.stringify(err, null, 2));
           }
 
+          console.log('Attempting to send admin notification to:', process.env.NOTIFICATION_EMAIL);
           try {
-            await sendLeadCaptureNotification(lead);
-            request.log.info({ ownerEmail: lead.ownerEmail }, 'Lead capture notification sent to admin');
+            const notifResult = await sendLeadCaptureNotification(lead);
+            console.log('Admin notification result:', JSON.stringify(notifResult, null, 2));
           } catch (err) {
-            request.log.error({ err }, 'Failed to send lead capture notification');
+            console.error('RESEND ERROR (admin notification):', err?.message, JSON.stringify(err, null, 2));
           }
+        } else {
+          console.log('No valid email found — skipping email sends');
         }
       }
     } catch (err) {
-      request.log.error({ err, event }, 'Error handling Retell webhook');
+      console.error('WEBHOOK HANDLER ERROR:', err?.message, err?.stack);
     }
 
     return reply.status(200).send({ received: true });

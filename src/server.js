@@ -50,6 +50,11 @@ app.log.info(`Loaded ${processors.length} signed processor config(s): ${processo
 await initDatabase();
 app.log.info('SQLite database initialized');
 
+// Debug: confirm email env vars are present at startup
+console.log('ENV CHECK — RESEND_API_KEY:', !!process.env.RESEND_API_KEY);
+console.log('ENV CHECK — FROM_EMAIL:', process.env.FROM_EMAIL || '(not set)');
+console.log('ENV CHECK — NOTIFICATION_EMAIL:', process.env.NOTIFICATION_EMAIL || '(not set)');
+
 // ---------------------------------------------------------------------------
 // Routes
 // ---------------------------------------------------------------------------
