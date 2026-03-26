@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Your Processing Savings Report</title></head>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <h2>Your Processing Savings Report</h2>
+  <p>Hi {{ownerName}},</p>
+  <p>Great news — we found real savings on your processing fees.</p>
+
+  <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+    <tr style="background: #f5f5f5;">
+      <td style="padding: 10px; border: 1px solid #ddd;">Current monthly processing cost</td>
+      <td style="padding: 10px; border: 1px solid #ddd; text-align: right;"><strong>${{currentCost}}</strong></td>
+    </tr>
+    <tr>
+      <td style="padding: 10px; border: 1px solid #ddd;">Proposed monthly cost</td>
+      <td style="padding: 10px; border: 1px solid #ddd; text-align: right;"><strong>${{proposedCost}}</strong></td>
+    </tr>
+    <tr style="background: #e8f5e9;">
+      <td style="padding: 10px; border: 1px solid #ddd;"><strong>YOUR MONTHLY SAVINGS</strong></td>
+      <td style="padding: 10px; border: 1px solid #ddd; text-align: right;"><strong style="color: #2e7d32;">${{monthlySavings}}</strong></td>
+    </tr>
+    <tr style="background: #e8f5e9;">
+      <td style="padding: 10px; border: 1px solid #ddd;"><strong>YOUR ANNUAL SAVINGS</strong></td>
+      <td style="padding: 10px; border: 1px solid #ddd; text-align: right;"><strong style="color: #2e7d32;">${{annualSavings}}</strong></td>
+    </tr>
+  </table>
+
+  <p><strong>Recommended processor:</strong> {{recommendedProcessor}}</p>
+  <p>{{reason}}</p>
+
+  <p>Ready to switch? It takes about 10 minutes and there's zero downtime.
+  Reply to this email or I'll give you a call to walk through it.</p>
+
+  <p>Alex<br>01 Payments<br>(916) 661-4050</p>
+</body>
+</html>

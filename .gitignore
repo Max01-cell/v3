@@ -1,0 +1,5 @@
+node_modules/
+.env
+data/01payments.db
+data/01payments.db-wal
+data/01payments.db-shm

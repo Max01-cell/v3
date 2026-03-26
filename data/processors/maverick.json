@@ -1,0 +1,15 @@
+{
+  "id": "maverick",
+  "name": "Maverick Payments",
+  "platform": null,
+  "status": "pending",
+  "contact": null,
+  "binSponsorshipRate": 0,
+  "posCompatibility": [],
+  "proprietaryPOS": null,
+  "restaurantPOS": null,
+  "contract": null,
+  "fastTrackBonus": null,
+  "tiers": [],
+  "notes": ["Known for high-risk + white-label dashboard. Has onboarding API. Need Schedule A."]
+}

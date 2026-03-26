@@ -1,0 +1,185 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ProcessorConfig",
+  "description": "Schedule A rate configuration for a payment processor ISO partnership",
+  "type": "object",
+  "required": ["id", "name", "status", "binSponsorshipRate", "posCompatibility", "tiers"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier, lowercase, no spaces (e.g., 'kurv', 'epi', 'beacon-cardconnect')"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name (e.g., 'Kurv (EMS)', 'Electronic Payments Inc')"
+    },
+    "platform": {
+      "type": ["string", "null"],
+      "description": "Processing platform name (e.g., 'MaxxPay', 'Cygma', 'CardConnect')"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["signed", "pending", "in_progress", "inactive"],
+      "description": "Partnership status. Only 'signed' processors are included in comparisons."
+    },
+    "contact": {
+      "type": ["object", "null"],
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": ["string", "null"] }
+      },
+      "description": "ISO manager / rep contact info"
+    },
+    "binSponsorshipRate": {
+      "type": "number",
+      "description": "BIN sponsorship rate as decimal (e.g., 0.0002 = 0.02%). NOT splittable — pure pass-through cost."
+    },
+    "posCompatibility": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["open", "clover", "standalone"]
+      },
+      "description": "Which POS categories this processor supports. 'open' = Pax/Dejavoo/Verifone/Ingenico. 'clover' = Clover devices. 'standalone' = no POS / virtual terminal."
+    },
+    "proprietaryPOS": {
+      "type": ["string", "null"],
+      "description": "Name of processor's own POS system, if any (e.g., 'MaxxPay', 'Exatouch')"
+    },
+    "restaurantPOS": {
+      "type": ["object", "null"],
+      "properties": {
+        "name": { "type": "string" },
+        "monthlyFee": { "type": "number" }
+      }
+    },
+    "contract": {
+      "type": ["object", "null"],
+      "properties": {
+        "termYears": { "type": ["number", "null"] },
+        "exclusive": { "type": "boolean" },
+        "residualsVested": { "type": ["boolean", "null"] },
+        "residualsSurviveThreshold": { "type": ["number", "null"], "description": "Min total fees for residuals to survive termination" },
+        "nonSolicitationPenalty": { "type": ["string", "null"] }
+      }
+    },
+    "fastTrackBonus": {
+      "type": ["object", "null"],
+      "properties": {
+        "amount": { "type": "number" },
+        "requirement": { "type": "string" }
+      }
+    },
+    "tiers": {
+      "type": "array",
+      "description": "One or more pricing tiers. Single-tier processors just have one entry. Multi-tier (like EPI Pick-A-Tier) have multiple.",
+      "items": {
+        "type": "object",
+        "required": ["tierId", "residualSplit", "authFee"],
+        "properties": {
+          "tierId": {
+            "type": "string",
+            "description": "Tier identifier (e.g., 'default', 'A', 'B', 'cardconnect', 'flex-sell')"
+          },
+          "tierName": {
+            "type": "string",
+            "description": "Human-readable tier name"
+          },
+          "residualSplit": {
+            "type": "number",
+            "description": "Our residual split as decimal (e.g., 0.80 = 80% to us)"
+          },
+          "riskResidualSplit": {
+            "type": ["number", "null"],
+            "description": "Residual split for risk/high-risk merchants, if different"
+          },
+          "authFee": {
+            "type": "number",
+            "description": "Per-transaction auth fee for bank cards (Visa/MC/Discover) in dollars"
+          },
+          "amexAuthFee": {
+            "type": ["number", "null"],
+            "description": "Per-transaction auth fee for AmEx, if different from authFee. If null, uses authFee."
+          },
+          "batchFee": {
+            "type": ["number", "null"],
+            "description": "Per-batch settlement fee. null = included / no separate charge."
+          },
+          "avsFee": {
+            "type": ["number", "null"],
+            "description": "AVS verification fee per CNP transaction. null = included."
+          },
+          "pinDebitFee": {
+            "type": ["number", "null"],
+            "description": "Per-transaction PIN debit fee. null = included."
+          },
+          "amexBinRate": {
+            "type": ["number", "null"],
+            "description": "AmEx OptBlue BIN sponsorship rate as decimal (e.g., 0.0010 = 0.10%). NOT splittable."
+          },
+          "posPlacementAmexBinRate": {
+            "type": ["number", "null"],
+            "description": "Higher AmEx BIN rate that applies when a free POS placement is involved (e.g., EPI Option C charges 0.30% instead of 0.15%). null = same as amexBinRate."
+          },
+          "monthlyFees": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "amount"],
+              "properties": {
+                "name": { "type": "string" },
+                "amount": { "type": "number", "description": "Monthly amount in dollars" },
+                "split": { "type": ["number", "null"], "description": "Our split on this fee as decimal. null = not splittable." },
+                "conditional": { "type": ["string", "null"], "description": "Condition for this fee (e.g., 'only if Clover', 'required for bonus')" }
+              }
+            }
+          },
+          "signingBonus": {
+            "type": ["number", "null"],
+            "description": "One-time signing bonus per activated account in dollars"
+          },
+          "advance": {
+            "type": ["object", "null"],
+            "properties": {
+              "amount": { "type": "number" },
+              "requirements": {
+                "type": "object",
+                "properties": {
+                  "monthlyFee": { "type": "number" },
+                  "monthlyMinimum": { "type": "number" }
+                }
+              },
+              "reducedAmount": { "type": ["number", "null"] }
+            }
+          },
+          "multiplier": {
+            "type": ["object", "null"],
+            "properties": {
+              "factor": { "type": "number" },
+              "cap": { "type": ["number", "null"] },
+              "floor": { "type": ["number", "null"] }
+            }
+          },
+          "freeTerminal": { "type": "boolean" },
+          "posPlacement": {
+            "type": ["string", "null"],
+            "description": "Free POS system placement (e.g., 'Exatouch', 'Clover (volume-tiered)')"
+          },
+          "bonusRequirements": {
+            "type": ["object", "null"],
+            "properties": {
+              "statementFee": { "type": "number" },
+              "monthlyMinimum": { "type": "number" }
+            }
+          },
+          "notes": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

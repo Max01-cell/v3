@@ -1,0 +1,15 @@
+{
+  "id": "priority",
+  "name": "Priority Technology Holdings",
+  "platform": null,
+  "status": "pending",
+  "contact": { "name": "Jason Arp", "email": "jason.arp@prth.com", "phone": null },
+  "binSponsorshipRate": 0,
+  "posCompatibility": [],
+  "proprietaryPOS": null,
+  "restaurantPOS": null,
+  "contract": null,
+  "fastTrackBonus": null,
+  "tiers": [],
+  "notes": ["Call scheduled — need Schedule A to populate rates"]
+}

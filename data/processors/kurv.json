@@ -1,0 +1,85 @@
+{
+  "id": "kurv",
+  "name": "Kurv (EMS)",
+  "platform": "MaxxPay",
+  "status": "signed",
+  "contact": null,
+  "binSponsorshipRate": 0.0002,
+  "posCompatibility": ["open", "standalone"],
+  "proprietaryPOS": "MaxxPay",
+  "restaurantPOS": { "name": "Total Touch", "monthlyFee": 59.95 },
+  "contract": {
+    "termYears": 3,
+    "exclusive": false,
+    "residualsVested": true,
+    "residualsSurviveThreshold": null,
+    "residualMinimum": 100,
+    "residualMinimumNote": "After 1 year, EMS may stop paying if residual < $100 (endnote 6)",
+    "nonSolicitationPenalty": "Greater of 36x prior 6-month avg monthly net revenue OR $5,000"
+  },
+  "fastTrackBonus": null,
+  "tiers": [
+    {
+      "tierId": "retail",
+      "tierName": "Retail Merchants (80% Split)",
+      "residualSplit": 0.80,
+      "riskResidualSplit": null,
+      "authFee": 0.04,
+      "amexAuthFee": 0.05,
+      "batchFee": 0.05,
+      "avsFee": 0.01,
+      "pinDebitFee": 0.05,
+      "amexBinRate": null,
+      "_amexBinNote": "Kurv Schedule A does not list separate AmEx OptBlue BIN. Confirm with rep.",
+      "monthlyFees": [
+        { "name": "Monthly Access Fee", "amount": 6.00, "split": 0.80, "conditional": null },
+        { "name": "Breach Protection", "amount": 6.00, "split": 0.50, "conditional": null },
+        { "name": "Platinum Club", "amount": 5.00, "split": 0.80, "conditional": null },
+        { "name": "Semi-Annual Tech Compliance", "amount": 1.67, "split": 0.80, "conditional": "$10 per 6 months, charged monthly as 1/6th" }
+      ],
+      "signingBonus": null,
+      "advance": null,
+      "multiplier": null,
+      "freeTerminal": false,
+      "posPlacement": null,
+      "posPlacementAmexBinRate": null,
+      "bonusRequirements": null,
+      "notes": "Retail = card-present > 80% of transactions. 5 sponsor banks — can place hard-to-place merchants."
+    },
+    {
+      "tierId": "risk",
+      "tierName": "Risk Merchants (50% Split)",
+      "residualSplit": 0.50,
+      "riskResidualSplit": null,
+      "authFee": 0.06,
+      "amexAuthFee": 0.05,
+      "batchFee": 0.05,
+      "avsFee": 0.01,
+      "pinDebitFee": 0.05,
+      "amexBinRate": null,
+      "monthlyFees": [
+        { "name": "Monthly Access Fee", "amount": 8.00, "split": 0.50, "conditional": null },
+        { "name": "Breach Protection", "amount": 8.00, "split": 0.50, "conditional": null },
+        { "name": "Platinum Club", "amount": 5.00, "split": 0.50, "conditional": null },
+        { "name": "Semi-Annual Tech Compliance", "amount": 1.67, "split": 0.50, "conditional": "$10 per 6 months" }
+      ],
+      "signingBonus": null,
+      "advance": null,
+      "multiplier": null,
+      "freeTerminal": false,
+      "posPlacement": null,
+      "posPlacementAmexBinRate": null,
+      "bonusRequirements": null,
+      "notes": "Risk Merchant = elevated chargeback/reputational/legal risk. BIN sponsorship 0.10% (5x retail). Sponsor fee: 0.20% or $0.20/txn whichever higher. Auth $0.06 (vs $0.04 retail)."
+    }
+  ],
+  "notes": [
+    "5 sponsor banks (Axiom, Merrick, BMO Harris, Esquire, Central Bank of St. Louis)",
+    "Non-solicitation: 36x avg monthly net revenue OR $5,000 per account",
+    "Does NOT support Clover — has proprietary MaxxPay POS line",
+    "After 1 year, EMS may stop paying residuals if < $100/month",
+    "EMS Plus merchants: batch fee = $0.10, monthly access/tech/breach fees currently waived",
+    "BizFunds cash advance bonus: 2.5% of funded amount upfront + 2.5% monthly until 5% total",
+    "Risk merchant BIN sponsorship is 0.10% (vs 0.02% retail) — must use risk tier for quoting"
+  ]
+}

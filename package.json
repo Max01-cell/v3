@@ -1,0 +1,27 @@
+{
+  "name": "01payments-api",
+  "version": "1.0.0",
+  "description": "01 Payments — AI-powered merchant services brokerage backend",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --env-file=.env --watch src/server.js",
+    "test": "node --test tests/*.test.js",
+    "validate-processors": "node scripts/validate-processors.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.36.0",
+    "@fastify/cors": "^9.0.0",
+    "@fastify/multipart": "^8.0.0",
+    "@fastify/rate-limit": "^9.0.0",
+    "ajv": "^8.17.1",
+    "better-sqlite3": "^11.0.0",
+    "fastify": "^4.28.0",
+    "resend": "^4.0.0",
+    "retell-sdk": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

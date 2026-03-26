@@ -1,0 +1,49 @@
+{
+  "_comment": "Sample extracted statement for test fixtures. Based on Test Case 1 from COMPARISON_ENGINE_SPEC.md.",
+  "merchant": {
+    "businessName": "Tony's Italian Kitchen",
+    "mid": "MID123456",
+    "currentProcessor": "First Data",
+    "statementPeriod": "2025-09",
+    "posSystem": "Pax A920"
+  },
+  "volume": {
+    "visaMcVolume": 42000,
+    "visaMcTransactions": 800,
+    "amexVolume": 8000,
+    "amexTransactions": 120,
+    "discoverVolume": 3000,
+    "discoverTransactions": 60,
+    "debitVolume": 12000,
+    "debitTransactions": 300,
+    "totalVolume": 65000,
+    "totalTransactions": 1280,
+    "averageTicket": 50.78
+  },
+  "interchange": {
+    "totalInterchangeFees": 1137.50,
+    "effectiveInterchangeRate": 0.0175
+  },
+  "processingFees": {
+    "markupRate": null,
+    "authFee": 0.10,
+    "batchFee": 0.25,
+    "avsFee": null,
+    "monthlyFees": [
+      { "name": "Statement Fee", "amount": 9.95 },
+      { "name": "PCI Fee", "amount": 12.95 },
+      { "name": "Account Fee", "amount": 5.00 }
+    ],
+    "totalMonthlyProcessingFees": 27.90
+  },
+  "platformFees": [],
+  "otherFees": {
+    "chargebackFee": 25.00,
+    "retrievalFee": 15.00,
+    "earlyTerminationFee": 495.00
+  },
+  "cardPresence": {
+    "cardPresentPercent": 90,
+    "cardNotPresentPercent": 10
+  }
+}

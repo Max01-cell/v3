@@ -1,0 +1,122 @@
+{
+  "id": "beacon",
+  "name": "Beacon Payments",
+  "platform": "CardConnect",
+  "status": "signed",
+  "contact": null,
+  "binSponsorshipRate": 0.0001,
+  "posCompatibility": ["open", "clover", "standalone"],
+  "proprietaryPOS": null,
+  "restaurantPOS": null,
+  "contract": {
+    "termYears": 3,
+    "exclusive": false,
+    "residualsVested": true,
+    "residualsSurviveThreshold": 1000,
+    "nonSolicitationPenalty": "39x average monthly gross fees"
+  },
+  "fastTrackBonus": null,
+  "tiers": [
+    {
+      "tierId": "cardconnect",
+      "tierName": "CardConnect Standard",
+      "residualSplit": 0.60,
+      "riskResidualSplit": null,
+      "authFee": 0.03,
+      "amexAuthFee": 0.03,
+      "batchFee": 0.03,
+      "avsFee": 0.03,
+      "pinDebitFee": 0.03,
+      "amexBinRate": 0.0010,
+      "posPlacementAmexBinRate": null,
+      "monthlyFees": [
+        { "name": "Monthly Platform Fee", "amount": 5.00, "split": 0.60, "conditional": null },
+        { "name": "TransArmor Fee", "amount": 5.00, "split": 0.60, "conditional": null },
+        { "name": "Clover Platform Fee", "amount": 5.00, "split": 0.60, "conditional": "only if merchant uses Clover" }
+      ],
+      "signingBonus": null,
+      "advance": {
+        "amount": 1000,
+        "requirements": { "monthlyFee": 10.00, "monthlyMinimum": 30.00 },
+        "reducedAmount": 150
+      },
+      "multiplier": { "factor": 8, "cap": 5000, "floor": 150 },
+      "freeTerminal": false,
+      "posPlacement": null,
+      "bonusRequirements": null,
+      "notes": "$1,000 advance if $10 fee + $30 min applied. 8x on first full calendar month's residual. Clawed back if < 365 days processing. TWO comparison entries: with/without advance."
+    },
+    {
+      "tierId": "flex-sell",
+      "tierName": "Flex Sell (Free Clover Program)",
+      "residualSplit": 0.50,
+      "riskResidualSplit": null,
+      "authFee": 0.03,
+      "amexAuthFee": 0.03,
+      "batchFee": 0.03,
+      "avsFee": 0.03,
+      "pinDebitFee": 0.03,
+      "amexBinRate": 0.0010,
+      "posPlacementAmexBinRate": null,
+      "monthlyFees": [
+        { "name": "Monthly Platform Fee", "amount": 5.00, "split": 0.50, "conditional": null },
+        { "name": "TransArmor Fee", "amount": 5.00, "split": 0.50, "conditional": null },
+        { "name": "Clover Platform Fee", "amount": 5.00, "split": 0.50, "conditional": null }
+      ],
+      "signingBonus": 0,
+      "advance": null,
+      "multiplier": null,
+      "freeTerminal": false,
+      "posPlacement": "Clover (volume-tiered)",
+      "bonusRequirements": null,
+      "_flexSellTiers_dualPricing": {
+        "under_15k": "No free equipment",
+        "15k_to_25k": "Free handheld or mini POS",
+        "25k_to_40k": "1 free POS station",
+        "40k_to_60k": "2 free POS stations",
+        "over_60k": "Approval by Beacon required"
+      },
+      "_flexSellTiers_interchangePlus": {
+        "under_150_margin": "No free equipment",
+        "150_to_250_margin": "Free handheld or mini POS",
+        "250_to_400_margin": "1 free POS station",
+        "400_to_600_margin": "2 free POS stations",
+        "over_600_margin": "Approval by Beacon required"
+      },
+      "_clawback": "If first full month volume below tier, Beacon offsets 50% of equipment cost from future comp",
+      "notes": "Free Clover hardware based on volume. No bonus. 50% split."
+    },
+    {
+      "tierId": "tsys-payarc",
+      "tierName": "TSYS/Payarc Platform",
+      "residualSplit": 0.60,
+      "riskResidualSplit": null,
+      "authFee": 0.03,
+      "amexAuthFee": 0.03,
+      "batchFee": 0.03,
+      "avsFee": 0.03,
+      "pinDebitFee": 0.03,
+      "amexBinRate": 0.0010,
+      "posPlacementAmexBinRate": null,
+      "monthlyFees": [
+        { "name": "Monthly Customer Service Fee", "amount": 5.00, "split": 0.60, "conditional": null },
+        { "name": "PCI Compliance", "amount": 5.59, "split": 0.60, "conditional": null }
+      ],
+      "signingBonus": null,
+      "advance": null,
+      "multiplier": null,
+      "freeTerminal": false,
+      "posPlacement": null,
+      "bonusRequirements": null,
+      "notes": "Alternative platform. Wireless auth +$0.10. PCI non-validation $29.95 after 60d. Proactive security $49.95 after 180d."
+    }
+  ],
+  "notes": [
+    "ONLY processor that supports Clover natively",
+    "Lowest BIN sponsorship rate (0.01%) of all processors",
+    "$1,000 advance drops to $150 if $10 monthly fee or $30 minimum not applied",
+    "Bonuses clawed back if merchant processes less than 365 days",
+    "TSYS/Payarc is a separate platform — now fully documented with rates",
+    "Non-solicitation: 39x average monthly gross fees penalty"
+  ]
+}

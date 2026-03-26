@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>New Statement Upload</title></head>
+<body style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px;">
+  <h2>New Statement Upload — {{businessName}}</h2>
+
+  <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+    <tr><td style="padding: 6px; font-weight: bold; width: 180px;">Business</td><td style="padding: 6px;">{{businessName}}</td></tr>
+    <tr style="background: #f9f9f9;"><td style="padding: 6px; font-weight: bold;">Contact</td><td style="padding: 6px;">{{ownerName}}</td></tr>
+    <tr><td style="padding: 6px; font-weight: bold;">Phone</td><td style="padding: 6px;">{{phone}}</td></tr>
+    <tr style="background: #f9f9f9;"><td style="padding: 6px; font-weight: bold;">Email</td><td style="padding: 6px;">{{email}}</td></tr>
+    <tr><td style="padding: 6px; font-weight: bold;">POS System</td><td style="padding: 6px;">{{posSystem}}</td></tr>
+    <tr style="background: #f9f9f9;"><td style="padding: 6px; font-weight: bold;">Est. Volume</td><td style="padding: 6px;">{{estimatedVolume}}</td></tr>
+    <tr><td style="padding: 6px; font-weight: bold;">Best Time to Call</td><td style="padding: 6px;">{{bestTimeToCall}}</td></tr>
+  </table>
+
+  <h3>Analysis Results</h3>
+  <p>Current cost: <strong>${{currentCost}}/month</strong> | Volume: <strong>${{totalVolume}}</strong> | POS: <strong>{{posCategory}}</strong> ({{difficulty}})</p>
+
+  <h4>All Processor Comparisons</h4>
+  <pre style="background: #f5f5f5; padding: 15px; overflow-x: auto; font-size: 12px;">{{comparisonsText}}</pre>
+
+  <h3>Recommendation: {{action}}</h3>
+  <p>{{reason}}</p>
+
+  <table style="width: 100%; border-collapse: collapse;">
+    <tr><td style="padding: 6px; font-weight: bold;">Best for merchant</td><td style="padding: 6px;">{{bestForMerchant}}</td></tr>
+    <tr style="background: #f9f9f9;"><td style="padding: 6px; font-weight: bold;">Best residual for us</td><td style="padding: 6px;">{{bestResidual}}</td></tr>
+    <tr><td style="padding: 6px; font-weight: bold;">Best upfront</td><td style="padding: 6px;">{{bestUpfront}}</td></tr>
+    <tr style="background: #f9f9f9;"><td style="padding: 6px; font-weight: bold;">Deal difficulty</td><td style="padding: 6px;">{{difficulty}}</td></tr>
+  </table>
+</body>
+</html>
