@@ -27,8 +27,7 @@ export function getRetellClient() {
  * @returns {boolean}
  */
 export function verifyRetellSignature(rawBody, signature) {
-  const retell = getRetellClient();
-  return retell.verify(
+  return Retell.verify(
     JSON.stringify(rawBody),
     process.env.RETELL_API_KEY,
     signature
@@ -48,6 +47,11 @@ export async function createOutboundCall(prospect, callType = 'cold_call') {
   const agentId = callType === 'follow_up'
     ? process.env.RETELL_FOLLOW_UP_AGENT_ID
     : process.env.RETELL_COLD_CALL_AGENT_ID;
+
+  if (!agentId) {
+    const label = callType === 'follow_up' ? 'RETELL_FOLLOW_UP_AGENT_ID' : 'RETELL_COLD_CALL_AGENT_ID';
+    throw new Error(`${label} is not set — create the agent in Retell dashboard first`);
+  }
 
   return retell.call.createPhoneCall({
     from_number: process.env.RETELL_FROM_NUMBER,
@@ -75,6 +79,11 @@ export async function createBatchCalls(prospects, callType = 'cold_call') {
   const agentId = callType === 'follow_up'
     ? process.env.RETELL_FOLLOW_UP_AGENT_ID
     : process.env.RETELL_COLD_CALL_AGENT_ID;
+
+  if (!agentId) {
+    const label = callType === 'follow_up' ? 'RETELL_FOLLOW_UP_AGENT_ID' : 'RETELL_COLD_CALL_AGENT_ID';
+    throw new Error(`${label} is not set — create the agent in Retell dashboard first`);
+  }
 
   const tasks = prospects.map(p => ({
     from_number: process.env.RETELL_FROM_NUMBER,

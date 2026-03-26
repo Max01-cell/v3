@@ -20,7 +20,7 @@ function getResend() {
 }
 
 const FROM = process.env.FROM_EMAIL || 'alex@01payments.com';
-const ADMIN = process.env.NOTIFICATION_EMAIL || 'maxh707@gmail.com';
+const ADMIN = process.env.NOTIFICATION_EMAIL || 'max@01payments.com';
 
 /**
  * Send statement upload link to merchant after cold call.
@@ -78,6 +78,61 @@ export async function sendSavingsReport({ email, ownerName, comparison }) {
       <p>Ready to switch? It takes about 10 minutes and there's zero downtime.
       Reply to this email or I'll give you a call to walk through it.</p>
       <p>Alex<br>01 Payments</p>
+    `,
+  });
+}
+
+/**
+ * Send post-call follow-up email to merchant asking for statement photo.
+ *
+ * @param {{ email, ownerName }} params
+ */
+export async function sendPostCallFollowUp({ email, ownerName }) {
+  return getResend().emails.send({
+    from: `Alex <${FROM}>`,
+    to: email,
+    subject: 'Your Free Processing Statement Analysis — 01 Payments',
+    html: `
+      <p>Hi ${ownerName || 'there'},</p>
+      <p>Great chatting with you! As promised, just reply to this email with a photo
+      (or PDF) of your most recent processing statement and a real person will send
+      you a full savings breakdown within 24 hours — completely free, no obligation.</p>
+      <p>Most businesses we work with save between $200–$800/month, so it's worth
+      the two minutes to find out.</p>
+      <p>Looking forward to it!</p>
+      <p>Alex<br>01 Payments<br>(916) 661-4050</p>
+    `,
+  });
+}
+
+/**
+ * Send admin notification when a hot lead email is captured post-call.
+ *
+ * @param {{ ownerName, email, businessType, currentProcessor, leadQuality, callOutcome }} params
+ */
+export async function sendLeadCaptureNotification({ ownerName, ownerEmail, businessName, businessType, city, callOutcome, objectionGiven, leadQuality, currentProcessor, currentRate, callbackTime }) {
+  return getResend().emails.send({
+    from: FROM,
+    to: ADMIN,
+    subject: `New Lead — ${leadQuality?.toUpperCase() || 'UNKNOWN'} | ${businessName || ownerName || ownerEmail}`,
+    html: `
+      <h2>Email captured from post-call analysis</h2>
+      <p>
+        <strong>Name:</strong> ${ownerName || 'n/a'}<br>
+        <strong>Business:</strong> ${businessName || 'n/a'}<br>
+        <strong>Business Type:</strong> ${businessType || 'n/a'}<br>
+        <strong>City:</strong> ${city || 'n/a'}<br>
+        <strong>Email:</strong> ${ownerEmail}<br>
+      </p>
+      <h3>Call Analysis</h3>
+      <p>
+        <strong>Lead Quality:</strong> ${leadQuality || 'n/a'}<br>
+        <strong>Call Outcome:</strong> ${callOutcome || 'n/a'}<br>
+        <strong>Objection:</strong> ${objectionGiven || 'n/a'}<br>
+        <strong>Current Processor:</strong> ${currentProcessor || 'n/a'}<br>
+        <strong>Current Rate:</strong> ${currentRate || 'n/a'}<br>
+        <strong>Callback Time:</strong> ${callbackTime || 'n/a'}
+      </p>
     `,
   });
 }

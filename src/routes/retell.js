@@ -10,7 +10,7 @@
 
 import { requireRetellSignature } from '../middleware/retell-verify.js';
 import { upsertLead, updateLeadStatus, saveCallRecord } from '../services/leads.js';
-import { sendUploadLink } from '../services/email.js';
+import { sendUploadLink, sendPostCallFollowUp, sendLeadCaptureNotification } from '../services/email.js';
 
 export default async function retellRoutes(fastify) {
   // Apply signature verification to all routes in this plugin
@@ -97,10 +97,44 @@ export default async function retellRoutes(fastify) {
       }
 
       if (event === 'call_analyzed') {
-        // Store transcript
-        // TODO: look up lead by call id and save transcript
-        const transcript = call?.transcript;
-        request.log.info({ callId: call?.call_id, hasTranscript: !!transcript }, 'Call analyzed');
+        // Retell puts extracted fields under call_analysis.custom_analysis_data
+        const extracted = call?.call_analysis?.custom_analysis_data || {};
+        const vars = call?.retell_llm_dynamic_variables || {};
+
+        // Merge: extracted analysis takes precedence, dynamic vars fill gaps
+        const lead = {
+          ownerName:        extracted.owner_name       || vars.owner_name,
+          ownerEmail:       extracted.owner_email      || vars.owner_email,
+          businessName:     vars.business_name,
+          businessType:     vars.business_type,
+          city:             vars.city,
+          callOutcome:      extracted.call_outcome,
+          objectionGiven:   extracted.objection_given,
+          leadQuality:      extracted.lead_quality,
+          currentProcessor: extracted.current_processor,
+          currentRate:      extracted.current_rate,
+          callbackTime:     extracted.callback_time,
+        };
+
+        request.log.info({ callId: call?.call_id, ...lead }, 'Call analyzed');
+
+        const hasEmail = lead.ownerEmail && lead.ownerEmail !== 'none' && lead.ownerEmail.trim() !== '';
+
+        if (hasEmail) {
+          try {
+            await sendPostCallFollowUp({ email: lead.ownerEmail, ownerName: lead.ownerName });
+            request.log.info({ ownerEmail: lead.ownerEmail }, 'Post-call follow-up email sent');
+          } catch (err) {
+            request.log.error({ err, ownerEmail: lead.ownerEmail }, 'Failed to send post-call follow-up email');
+          }
+
+          try {
+            await sendLeadCaptureNotification(lead);
+            request.log.info({ ownerEmail: lead.ownerEmail }, 'Lead capture notification sent to admin');
+          } catch (err) {
+            request.log.error({ err }, 'Failed to send lead capture notification');
+          }
+        }
       }
     } catch (err) {
       request.log.error({ err, event }, 'Error handling Retell webhook');
