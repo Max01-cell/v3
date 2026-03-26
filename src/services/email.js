@@ -191,6 +191,10 @@ export async function sendPostCallFollowUp({ email, ownerName }) {
     <a href="${formUrl}" style="display:inline-block;background:#000000;color:#ffffff;padding:14px 28px;border-radius:6px;font-size:15px;font-weight:600;text-decoration:none;">Get My Free Audit &rarr;</a>
   </td></tr>
 
+  <tr><td style="padding-bottom:24px;">
+    <p style="margin:0;font-size:13px;line-height:1.6;color:#9ca3af;">Once you submit, keep an eye on your <strong style="color:#6b7280;">Promotions</strong> or <strong style="color:#6b7280;">Spam</strong> folder — your savings report may land there depending on your email provider.</p>
+  </td></tr>
+
   <tr><td style="border-top:1px solid #e5e7eb;padding-top:24px;">
     <p style="margin:0;font-size:14px;color:#6b7280;line-height:1.6;">Alex<br>01 Payments<br>(916) 661-4050<br>Questions? Just reply to this email.</p>
   </td></tr>
