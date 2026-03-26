@@ -88,20 +88,123 @@ export async function sendSavingsReport({ email, ownerName, comparison }) {
  * @param {{ email, ownerName }} params
  */
 export async function sendPostCallFollowUp({ email, ownerName }) {
+  const publicUrl = process.env.PUBLIC_URL || 'https://01payments.com';
+  const formUrl = `${publicUrl}/get-quote`;
+
   return getResend().emails.send({
-    from: `Alex <${FROM}>`,
+    from: `Alex <${getFrom()}>`,
     to: email,
-    subject: 'Your Free Processing Statement Analysis — 01 Payments',
-    html: `
-      <p>Hi ${ownerName || 'there'},</p>
-      <p>Great chatting with you! As promised, just reply to this email with a photo
-      (or PDF) of your most recent processing statement and a real person will send
-      you a full savings breakdown within 24 hours — completely free, no obligation.</p>
-      <p>Most businesses we work with save between $200–$800/month, so it's worth
-      the two minutes to find out.</p>
-      <p>Looking forward to it!</p>
-      <p>Alex<br>01 Payments<br>(916) 661-4050</p>
-    `,
+    subject: 'Get your free audit. — 01 Payments',
+    html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#000000;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;">
+<tr><td align="center" style="padding:40px 20px;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
+
+  <!-- Logo -->
+  <tr><td style="padding-bottom:40px;">
+    <span style="font-size:15px;font-weight:700;letter-spacing:-0.3px;color:#000000;">01 Payments</span>
+  </td></tr>
+
+  <!-- Heading -->
+  <tr><td style="padding-bottom:12px;">
+    <h1 style="margin:0;font-size:36px;font-weight:700;letter-spacing:-1px;line-height:1.1;color:#000000;">Get your free audit.</h1>
+  </td></tr>
+
+  <!-- Subheading -->
+  <tr><td style="padding-bottom:36px;">
+    <p style="margin:0;font-size:15px;color:#555555;line-height:1.5;">Fill out the form below and upload a recent processing statement. We'll review it and show you where you can save.</p>
+  </td></tr>
+
+  <!-- Full Name -->
+  <tr><td style="padding-bottom:20px;">
+    <p style="margin:0 0 6px 0;font-size:14px;font-weight:500;color:#000000;">Full Name</p>
+    <div style="border:1px solid #d1d5db;border-radius:6px;padding:12px 14px;font-size:14px;color:#9ca3af;">Jane Martinez</div>
+  </td></tr>
+
+  <!-- Business Name -->
+  <tr><td style="padding-bottom:20px;">
+    <p style="margin:0 0 6px 0;font-size:14px;font-weight:500;color:#000000;">Business Name</p>
+    <div style="border:1px solid #d1d5db;border-radius:6px;padding:12px 14px;font-size:14px;color:#9ca3af;">Martinez Coffee Co.</div>
+  </td></tr>
+
+  <!-- Phone Number -->
+  <tr><td style="padding-bottom:20px;">
+    <p style="margin:0 0 6px 0;font-size:14px;font-weight:500;color:#000000;">Phone Number</p>
+    <div style="border:1px solid #d1d5db;border-radius:6px;padding:12px 14px;font-size:14px;color:#9ca3af;">(555) 123-4567</div>
+  </td></tr>
+
+  <!-- Email -->
+  <tr><td style="padding-bottom:20px;">
+    <p style="margin:0 0 6px 0;font-size:14px;font-weight:500;color:#000000;">Email</p>
+    <div style="border:1px solid #d1d5db;border-radius:6px;padding:12px 14px;font-size:14px;color:#9ca3af;">jane@martinezcoffee.com</div>
+  </td></tr>
+
+  <!-- POS -->
+  <tr><td style="padding-bottom:20px;">
+    <p style="margin:0 0 6px 0;font-size:14px;font-weight:500;color:#000000;">What POS or terminal do you use?</p>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #d1d5db;border-radius:6px;background:#ffffff;">
+      <tr>
+        <td style="padding:12px 14px;font-size:14px;color:#9ca3af;">Select your POS / terminal</td>
+        <td style="padding:12px 14px;text-align:right;font-size:14px;color:#9ca3af;">&#8964;</td>
+      </tr>
+    </table>
+    <p style="margin:6px 0 0 0;font-size:12px;color:#9ca3af;line-height:1.6;">Clover &middot; Square &middot; Toast &middot; Pax &middot; Dejavoo &middot; Verifone &middot; Ingenico &middot; Heartland / Genius &middot; SpotOn &middot; Lightspeed &middot; Revel &middot; Shopify POS &middot; Stripe Terminal &middot; NCR / Aloha &middot; Micros / Oracle &middot; Standalone terminal &middot; Online only &middot; Other</p>
+  </td></tr>
+
+  <!-- Volume -->
+  <tr><td style="padding-bottom:20px;">
+    <p style="margin:0 0 6px 0;font-size:14px;font-weight:500;color:#000000;">Estimated monthly card volume</p>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #d1d5db;border-radius:6px;background:#ffffff;">
+      <tr>
+        <td style="padding:12px 14px;font-size:14px;color:#9ca3af;">Select estimated volume</td>
+        <td style="padding:12px 14px;text-align:right;font-size:14px;color:#9ca3af;">&#8964;</td>
+      </tr>
+    </table>
+    <p style="margin:6px 0 0 0;font-size:12px;color:#9ca3af;line-height:1.6;">Less than $10,000 &middot; $10,000&ndash;$25,000 &middot; $25,000&ndash;$50,000 &middot; $50,000&ndash;$100,000 &middot; $100,000+ &middot; I don't know</p>
+  </td></tr>
+
+  <!-- Best time -->
+  <tr><td style="padding-bottom:20px;">
+    <p style="margin:0 0 6px 0;font-size:14px;font-weight:500;color:#000000;">Best time to reach you?</p>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #d1d5db;border-radius:6px;background:#ffffff;">
+      <tr>
+        <td style="padding:12px 14px;font-size:14px;color:#9ca3af;">Select preferred time</td>
+        <td style="padding:12px 14px;text-align:right;font-size:14px;color:#9ca3af;">&#8964;</td>
+      </tr>
+    </table>
+    <p style="margin:6px 0 0 0;font-size:12px;color:#9ca3af;line-height:1.6;">Morning (8am&ndash;12pm) &middot; Afternoon (12pm&ndash;4pm) &middot; Evening (4pm&ndash;7pm) &middot; Anytime</p>
+  </td></tr>
+
+  <!-- Processing Statement -->
+  <tr><td style="padding-bottom:32px;">
+    <p style="margin:0 0 6px 0;font-size:14px;font-weight:500;color:#000000;">Processing Statement</p>
+    <div style="border:1px dashed #d1d5db;border-radius:6px;padding:28px 14px;text-align:center;background:#fafafa;">
+      <p style="margin:0 0 6px 0;font-size:22px;color:#9ca3af;">&#8679;</p>
+      <p style="margin:0;font-size:13px;color:#9ca3af;">Drag &amp; drop or click to upload PDF, PNG, or JPG</p>
+    </div>
+  </td></tr>
+
+  <!-- CTA -->
+  <tr><td style="padding-bottom:40px;">
+    <a href="${formUrl}" style="display:block;background:#000000;color:#ffffff;text-align:center;padding:16px;border-radius:6px;font-size:15px;font-weight:600;text-decoration:none;letter-spacing:-0.2px;">Submit for Free Audit</a>
+  </td></tr>
+
+  <!-- Footer -->
+  <tr><td style="border-top:1px solid #e5e7eb;padding-top:24px;">
+    <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.6;">Alex &middot; 01 Payments &middot; (916) 661-4050<br>Questions? Reply to this email.</p>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`,
   });
 }
 
