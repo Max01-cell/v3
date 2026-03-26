@@ -55,30 +55,94 @@ export async function sendUploadLink({ email, ownerName, leadId }) {
  */
 export async function sendSavingsReport({ email, ownerName, comparison }) {
   const rec = comparison.recommendation;
-  const savings = rec.monthlySavings.toFixed(2);
-  const annual = rec.annualSavings.toFixed(2);
-  const proposed = rec.monthlySavings > 0
-    ? `$${(comparison.currentCost - rec.monthlySavings).toFixed(2)}`
-    : 'similar to current';
+  const best = comparison.comparisons.find(c => c.bestForMerchant) || comparison.comparisons[0];
+  const noSavings = rec.action === 'NO_SWITCH';
+
+  const currentCost = comparison.currentCost.toFixed(2);
+  const proposedCost = best ? best.proposedCost.toFixed(2) : null;
+  const monthlySavings = best ? best.merchantSavings.toFixed(2) : '0.00';
+  const annualSavings = best ? (best.merchantSavings * 12).toFixed(2) : '0.00';
+
+  const subjectLine = noSavings
+    ? `Your Processing Statement Review — ${comparison.merchantName}`
+    : `We found $${monthlySavings}/mo in savings — ${comparison.merchantName}`;
+
+  const bodyHtml = noSavings ? `
+  <tr><td style="padding-bottom:24px;">
+    <p style="margin:0;font-size:16px;line-height:1.6;color:#000000;">Hi ${ownerName || 'there'},</p>
+  </td></tr>
+  <tr><td style="padding-bottom:24px;">
+    <p style="margin:0;font-size:16px;line-height:1.6;color:#000000;">We reviewed your processing statement for <strong>${comparison.merchantName}</strong> and ran the numbers against our rates.</p>
+  </td></tr>
+  <tr><td style="padding-bottom:24px;">
+    <p style="margin:0;font-size:16px;line-height:1.6;color:#000000;">Based on your current setup, the savings opportunity isn't significant enough right now to make a switch worthwhile. ${rec.reason}</p>
+  </td></tr>
+  <tr><td style="padding-bottom:24px;">
+    <p style="margin:0;font-size:16px;line-height:1.6;color:#000000;">If your volume changes or you'd like a second opinion down the road, don't hesitate to reach out.</p>
+  </td></tr>` : `
+  <tr><td style="padding-bottom:24px;">
+    <p style="margin:0;font-size:16px;line-height:1.6;color:#000000;">Hi ${ownerName || 'there'},</p>
+  </td></tr>
+  <tr><td style="padding-bottom:24px;">
+    <p style="margin:0;font-size:16px;line-height:1.6;color:#000000;">We reviewed your processing statement for <strong>${comparison.merchantName}</strong>. Here's what we found:</p>
+  </td></tr>
+
+  <!-- Numbers table -->
+  <tr><td style="padding-bottom:32px;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+      <tr style="background:#f9fafb;">
+        <td style="padding:14px 18px;font-size:13px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">What you pay now</td>
+        <td style="padding:14px 18px;font-size:13px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;text-align:right;">$${currentCost}/mo</td>
+      </tr>
+      <tr>
+        <td style="padding:14px 18px;font-size:13px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;border-top:1px solid #e5e7eb;">What you'd pay with us</td>
+        <td style="padding:14px 18px;font-size:13px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;text-align:right;border-top:1px solid #e5e7eb;">$${proposedCost}/mo</td>
+      </tr>
+      <tr style="background:#000000;">
+        <td style="padding:16px 18px;font-size:15px;font-weight:700;color:#ffffff;">Your monthly savings</td>
+        <td style="padding:16px 18px;font-size:15px;font-weight:700;color:#ffffff;text-align:right;">$${monthlySavings}/mo</td>
+      </tr>
+      <tr>
+        <td style="padding:14px 18px;font-size:13px;color:#6b7280;border-top:1px solid #e5e7eb;">That's annually</td>
+        <td style="padding:14px 18px;font-size:13px;font-weight:600;color:#000000;text-align:right;border-top:1px solid #e5e7eb;">$${annualSavings}/yr</td>
+      </tr>
+    </table>
+  </td></tr>
+
+  <tr><td style="padding-bottom:24px;">
+    <p style="margin:0;font-size:16px;line-height:1.6;color:#000000;">${rec.reason}</p>
+  </td></tr>
+  <tr><td style="padding-bottom:24px;">
+    <p style="margin:0;font-size:16px;line-height:1.6;color:#000000;">Ready to move forward? It takes about 10 minutes and there's zero downtime to your business. Reply to this email or give me a call and I'll walk you through it.</p>
+  </td></tr>`;
 
   return getResend().emails.send({
-    from: getFrom(),
+    from: `Alex <${getFrom()}>`,
     to: email,
-    subject: `Your Processing Savings Report — ${comparison.merchantName}`,
-    html: `
-      <p>Hi ${ownerName || 'there'},</p>
-      <p>Great news — we found real savings on your processing fees.</p>
-      <table>
-        <tr><td>Current monthly processing cost:</td><td><strong>$${comparison.currentCost.toFixed(2)}</strong></td></tr>
-        <tr><td>Proposed monthly cost:</td><td><strong>${proposed}</strong></td></tr>
-        <tr><td><strong>YOUR MONTHLY SAVINGS:</strong></td><td><strong>$${savings}</strong></td></tr>
-        <tr><td><strong>YOUR ANNUAL SAVINGS:</strong></td><td><strong>$${annual}</strong></td></tr>
-      </table>
-      <p><strong>Recommendation:</strong> ${rec.reason}</p>
-      <p>Ready to switch? It takes about 10 minutes and there's zero downtime.
-      Reply to this email or I'll give you a call to walk through it.</p>
-      <p>Alex<br>01 Payments</p>
-    `,
+    subject: subjectLine,
+    html: `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#000000;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr><td align="center" style="padding:40px 20px;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;">
+
+  <tr><td style="padding-bottom:32px;">
+    <span style="font-size:15px;font-weight:700;color:#000000;">01 Payments</span>
+  </td></tr>
+
+  ${bodyHtml}
+
+  <tr><td style="border-top:1px solid #e5e7eb;padding-top:24px;">
+    <p style="margin:0;font-size:14px;color:#6b7280;line-height:1.6;">Alex &middot; 01 Payments &middot; (916) 661-4050<br>Questions? Just reply to this email.</p>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`,
   });
 }
 
