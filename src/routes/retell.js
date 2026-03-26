@@ -96,11 +96,15 @@ export default async function retellRoutes(fastify) {
         console.log('call_analysis raw:', JSON.stringify(call?.call_analysis, null, 2));
         console.log('retell_llm_dynamic_variables raw:', JSON.stringify(call?.retell_llm_dynamic_variables, null, 2));
 
-        // Retell puts extracted fields under call_analysis.custom_analysis_data
-        const extracted = call?.call_analysis?.custom_analysis_data || {};
+        // Retell returns custom analysis fields directly on call_analysis (not nested)
+        // Fall back to custom_analysis_data in case Retell changes the structure
+        const callAnalysis = call?.call_analysis || {};
+        const extracted = Object.keys(callAnalysis.custom_analysis_data || {}).length
+          ? callAnalysis.custom_analysis_data
+          : callAnalysis;
         const vars = call?.retell_llm_dynamic_variables || {};
 
-        console.log('extracted (custom_analysis_data):', JSON.stringify(extracted, null, 2));
+        console.log('extracted fields:', JSON.stringify(extracted, null, 2));
 
         // Merge: extracted analysis takes precedence, dynamic vars fill gaps
         const lead = {

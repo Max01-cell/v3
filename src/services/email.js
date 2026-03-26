@@ -19,8 +19,8 @@ function getResend() {
   return resend;
 }
 
-const FROM = process.env.FROM_EMAIL || 'alex@01payments.com';
-const ADMIN = process.env.NOTIFICATION_EMAIL || 'max@01payments.com';
+const getFrom = () => process.env.FROM_EMAIL || 'alex@01payments.com';
+const getAdmin = () => process.env.NOTIFICATION_EMAIL || 'max@01payments.com';
 
 /**
  * Send statement upload link to merchant after cold call.
@@ -32,7 +32,7 @@ export async function sendUploadLink({ email, ownerName, leadId }) {
   const uploadUrl = `${publicUrl}/get-quote?ref=${leadId}`;
 
   return getResend().emails.send({
-    from: FROM,
+    from: getFrom(),
     to: email,
     subject: 'Upload Your Processing Statement — Free Savings Audit',
     html: `
@@ -62,7 +62,7 @@ export async function sendSavingsReport({ email, ownerName, comparison }) {
     : 'similar to current';
 
   return getResend().emails.send({
-    from: FROM,
+    from: getFrom(),
     to: email,
     subject: `Your Processing Savings Report — ${comparison.merchantName}`,
     html: `
@@ -112,8 +112,8 @@ export async function sendPostCallFollowUp({ email, ownerName }) {
  */
 export async function sendLeadCaptureNotification({ ownerName, ownerEmail, businessName, businessType, city, callOutcome, objectionGiven, leadQuality, currentProcessor, currentRate, callbackTime }) {
   return getResend().emails.send({
-    from: FROM,
-    to: ADMIN,
+    from: getFrom(),
+    to: getAdmin(),
     subject: `New Lead — ${leadQuality?.toUpperCase() || 'UNKNOWN'} | ${businessName || ownerName || ownerEmail}`,
     html: `
       <h2>Email captured from post-call analysis</h2>
@@ -156,8 +156,8 @@ export async function sendAdminNotification({ leadData, comparison }) {
   ).join('\n');
 
   return getResend().emails.send({
-    from: FROM,
-    to: ADMIN,
+    from: getFrom(),
+    to: getAdmin(),
     subject: `New Statement Upload — ${comparison.merchantName}`,
     html: `
       <h2>New lead submitted a statement</h2>
