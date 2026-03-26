@@ -99,9 +99,13 @@ export default async function retellRoutes(fastify) {
         // Retell returns custom analysis fields directly on call_analysis (not nested)
         // Fall back to custom_analysis_data in case Retell changes the structure
         const callAnalysis = call?.call_analysis || {};
-        const extracted = Object.keys(callAnalysis.custom_analysis_data || {}).length
+        const rawExtracted = Object.keys(callAnalysis.custom_analysis_data || {}).length
           ? callAnalysis.custom_analysis_data
           : callAnalysis;
+        // Normalize keys — trim whitespace to guard against Retell field name typos
+        const extracted = Object.fromEntries(
+          Object.entries(rawExtracted).map(([k, v]) => [k.trim(), v])
+        );
         const vars = call?.retell_llm_dynamic_variables || {};
 
         console.log('extracted fields:', JSON.stringify(extracted, null, 2));
