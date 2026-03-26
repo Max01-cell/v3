@@ -120,7 +120,7 @@ export async function sendPostCallFollowUp({ email, ownerName }) {
   </td></tr>
 
   <tr><td style="padding-bottom:24px;">
-    <p style="margin:0;font-size:16px;line-height:1.6;color:#000000;">Most businesses we work with save between <strong>$200–$800/month</strong>. Completely free, no obligation.</p>
+    <p style="margin:0;font-size:16px;line-height:1.6;color:#000000;">Once we review your statement we'll send you the exact numbers — what you're currently paying, what you'd pay with us, and the difference. Completely free, no obligation.</p>
   </td></tr>
 
   <tr><td style="padding-bottom:36px;">
