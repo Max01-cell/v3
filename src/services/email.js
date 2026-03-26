@@ -91,11 +91,11 @@ export async function sendSavingsReport({ email, ownerName, comparison }) {
   <tr><td style="padding-bottom:32px;">
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
       <tr style="background:#f9fafb;">
-        <td style="padding:14px 18px;font-size:13px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">What you pay now</td>
+        <td style="padding:14px 18px;font-size:13px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">What you currently pay</td>
         <td style="padding:14px 18px;font-size:13px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;text-align:right;">$${currentCost}/mo</td>
       </tr>
       <tr>
-        <td style="padding:14px 18px;font-size:13px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;border-top:1px solid #e5e7eb;">What you'd pay with us</td>
+        <td style="padding:14px 18px;font-size:13px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;border-top:1px solid #e5e7eb;">With one of our partners</td>
         <td style="padding:14px 18px;font-size:13px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;text-align:right;border-top:1px solid #e5e7eb;">$${proposedCost}/mo</td>
       </tr>
       <tr style="background:#000000;">
@@ -110,7 +110,7 @@ export async function sendSavingsReport({ email, ownerName, comparison }) {
   </td></tr>
 
   <tr><td style="padding-bottom:24px;">
-    <p style="margin:0;font-size:16px;line-height:1.6;color:#000000;">${rec.reason}</p>
+    <p style="margin:0;font-size:16px;line-height:1.6;color:#000000;">We work with multiple processing partners and match each business to the best fit based on their volume, industry, and equipment. I'll walk you through exactly which option makes the most sense for you.</p>
   </td></tr>
   <tr><td style="padding-bottom:24px;">
     <p style="margin:0;font-size:16px;line-height:1.6;color:#000000;">Ready to move forward? It takes about 10 minutes and there's zero downtime to your business. Reply to this email or give me a call and I'll walk you through it.</p>
