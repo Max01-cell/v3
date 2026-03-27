@@ -7,25 +7,38 @@
 
 import { runComparison } from './comparison.js';
 
+// Assumed average ticket size — used for per-transaction fee → effective rate conversion
+const AVG_TICKET = 50;
+
 // ---------------------------------------------------------------------------
 // Processor default rates (used when merchant didn't share their rate on call)
+// Verified March 2026. Each entry is { pct, perTxn } for card-present.
+// Effective all-in rate = pct + (perTxn / AVG_TICKET).
 // ---------------------------------------------------------------------------
 
-const PROCESSOR_DEFAULT_RATES = {
-  'square':  0.027,
-  'stripe':  0.029,
-  'paypal':  0.030,
-  'clover':  0.026,
-  'toast':   0.026,
+const PROCESSOR_RATES = {
+  // Square overhauled pricing Oct 2025: raised per-txn from $0.10 → $0.15
+  'square':   { pct: 0.026, perTxn: 0.15 },
+  'stripe':   { pct: 0.027, perTxn: 0.05 },
+  'paypal':   { pct: 0.0229, perTxn: 0.09 },
+  'zettle':   { pct: 0.0229, perTxn: 0.09 },
+  // Clover paid-plan rate (most merchants are on a paid plan)
+  'clover':   { pct: 0.023, perTxn: 0.10 },
+  // Toast standard plan (paid hardware upfront)
+  'toast':    { pct: 0.0249, perTxn: 0.15 },
+  'shopify':  { pct: 0.026, perTxn: 0.10 },
 };
 
+// Generic fallback for processors we don't have data on
+const GENERIC_DEFAULT = { pct: 0.027, perTxn: 0.10 };
+
 function getDefaultRate(processorName) {
-  if (!processorName) return 0.027;
+  if (!processorName) return GENERIC_DEFAULT.pct + GENERIC_DEFAULT.perTxn / AVG_TICKET;
   const key = processorName.toLowerCase().trim();
-  for (const [name, rate] of Object.entries(PROCESSOR_DEFAULT_RATES)) {
-    if (key.includes(name)) return rate;
+  for (const [name, { pct, perTxn }] of Object.entries(PROCESSOR_RATES)) {
+    if (key.includes(name)) return pct + perTxn / AVG_TICKET;
   }
-  return 0.027; // conservative generic default
+  return GENERIC_DEFAULT.pct + GENERIC_DEFAULT.perTxn / AVG_TICKET;
 }
 
 // ---------------------------------------------------------------------------
@@ -61,8 +74,6 @@ function parseRate(raw) {
 // Synthetic statement
 // ---------------------------------------------------------------------------
 
-// Reasonable defaults for a merchant we haven't seen a statement from
-const AVG_TICKET = 50;
 const CARD_MIX = { visaMc: 0.65, amex: 0.10, discover: 0.10, debit: 0.15 };
 const CNP_PERCENT = 10;
 
