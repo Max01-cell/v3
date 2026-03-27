@@ -147,61 +147,153 @@ export async function sendSavingsReport({ email, ownerName, comparison }) {
 }
 
 /**
- * Send post-call follow-up email to merchant asking for statement photo.
+ * Send post-call follow-up email to merchant with savings estimate.
  *
- * @param {{ email, ownerName }} params
+ * @param {{ email, ownerName, currentProcessor, monthlyVolume, currentRate, monthlySavings, annualSavings, savingsExplanation }} params
  */
-export async function sendPostCallFollowUp({ email, ownerName }) {
-  const publicUrl = process.env.PUBLIC_URL || 'https://01payments.com';
-  const formUrl = `${publicUrl}/get-quote`;
+export async function sendPostCallFollowUp({ email, ownerName, currentProcessor, monthlyVolume, currentRate, monthlySavings, annualSavings, savingsExplanation }) {
+  const publicUrl    = process.env.PUBLIC_URL   || 'https://01payments.com';
+  const calendarLink = process.env.CALENDAR_LINK || `${publicUrl}/get-quote`;
+
+  const subject = monthlySavings
+    ? `Your savings estimate — ${monthlySavings}/mo`
+    : 'Great chatting with you — 01 Payments';
+
+  const savingsBox = monthlySavings ? `
+<!-- Savings box -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#e8f5e9;border:1px solid #c8e6c9;border-radius:8px;margin-bottom:24px;">
+<tr>
+<td style="padding:28px;text-align:center;">
+<p style="color:#2e7d32;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;">Estimated monthly savings</p>
+<p style="color:#1b5e20;font-size:42px;font-weight:700;margin:0 0 4px;letter-spacing:-1px;">${monthlySavings}</p>
+<p style="color:#388e3c;font-size:14px;margin:0;">That's roughly <strong>${annualSavings}/year</strong> back in your pocket</p>
+</td>
+</tr>
+</table>` : '';
+
+  const howWeGetThere = savingsExplanation ? `
+<!-- How we get there -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8f8f5;border-radius:8px;margin-bottom:28px;">
+<tr>
+<td style="padding:24px;">
+<p style="color:#999999;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;">How we get you there</p>
+<p style="color:#555555;font-size:14px;line-height:1.6;margin:0;">${savingsExplanation}</p>
+</td>
+</tr>
+</table>` : '';
 
   return getResend().emails.send({
     from: `Alex <${getFrom()}>`,
     to: email,
-    subject: 'Great chatting with you — 01 Payments',
+    subject,
     html: `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#000000;">
-<table width="100%" cellpadding="0" cellspacing="0" border="0">
-<tr><td align="center" style="padding:40px 20px;">
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;">
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${subject}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
 
-  <tr><td style="padding-bottom:32px;">
-    <span style="font-size:15px;font-weight:700;color:#000000;">01 Payments</span>
-  </td></tr>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f0;padding:40px 20px;">
+<tr>
+<td align="center">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
 
-  <tr><td style="padding-bottom:24px;">
-    <p style="margin:0;font-size:16px;line-height:1.6;color:#000000;">Hi ${ownerName || 'there'},</p>
-  </td></tr>
+<!-- Header -->
+<tr>
+<td style="background-color:#1a1a1a;padding:32px 40px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+<tr>
+<td>
+<span style="color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.5px;">01</span>
+<span style="color:#999999;font-size:22px;font-weight:300;letter-spacing:-0.5px;"> Payments</span>
+</td>
+</tr>
+</table>
+</td>
+</tr>
 
-  <tr><td style="padding-bottom:24px;">
-    <p style="margin:0;font-size:16px;line-height:1.6;color:#000000;">Great talking with you today. As promised, I wanted to follow up with a link to get your free savings audit started.</p>
-  </td></tr>
+<!-- Main content -->
+<tr>
+<td style="padding:40px;">
 
-  <tr><td style="padding-bottom:24px;">
-    <p style="margin:0;font-size:16px;line-height:1.6;color:#000000;">Just fill out the short form and upload your most recent processing statement — it takes about two minutes. We'll review it and send you a full breakdown of exactly what you're paying and where you can save.</p>
-  </td></tr>
+<p style="color:#1a1a1a;font-size:18px;font-weight:600;margin:0 0 8px;">Hey ${ownerName || 'there'},</p>
+<p style="color:#555555;font-size:15px;line-height:1.6;margin:0 0 28px;">Thanks for chatting with Alex earlier. Based on what you shared about your processing setup, we put together a quick savings estimate for you.</p>
 
-  <tr><td style="padding-bottom:24px;">
-    <p style="margin:0;font-size:16px;line-height:1.6;color:#000000;">Once we review your statement we'll send you the exact numbers — what you're currently paying, what you'd pay with us, and the difference. Completely free, no obligation.</p>
-  </td></tr>
+<!-- What you told us -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8f8f5;border-radius:8px;margin-bottom:24px;">
+<tr>
+<td style="padding:24px;">
+<p style="color:#999999;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;">What you told us</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+<tr>
+<td style="padding:4px 0;color:#555555;font-size:14px;">Current processor</td>
+<td align="right" style="padding:4px 0;color:#1a1a1a;font-size:14px;font-weight:600;">${currentProcessor || '—'}</td>
+</tr>
+<tr>
+<td style="padding:4px 0;color:#555555;font-size:14px;">Estimated monthly volume</td>
+<td align="right" style="padding:4px 0;color:#1a1a1a;font-size:14px;font-weight:600;">${monthlyVolume || '—'}</td>
+</tr>
+<tr>
+<td style="padding:4px 0;color:#555555;font-size:14px;">Current rate</td>
+<td align="right" style="padding:4px 0;color:#1a1a1a;font-size:14px;font-weight:600;">${currentRate || '—'}</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
 
-  <tr><td style="padding-bottom:36px;">
-    <a href="${formUrl}" style="display:inline-block;background:#000000;color:#ffffff;padding:14px 28px;border-radius:6px;font-size:15px;font-weight:600;text-decoration:none;">Get My Free Audit &rarr;</a>
-  </td></tr>
+${savingsBox}
 
-  <tr><td style="padding-bottom:24px;">
-    <p style="margin:0;font-size:13px;line-height:1.6;color:#9ca3af;">Once you submit, keep an eye on your <strong style="color:#6b7280;">Promotions</strong> or <strong style="color:#6b7280;">Spam</strong> folder — your savings report may land there depending on your email provider.</p>
-  </td></tr>
+${howWeGetThere}
 
-  <tr><td style="border-top:1px solid #e5e7eb;padding-top:24px;">
-    <p style="margin:0;font-size:14px;color:#6b7280;line-height:1.6;">Alex<br>01 Payments<br>(916) 661-4050<br>Questions? Just reply to this email.</p>
-  </td></tr>
+<!-- CTA -->
+<p style="color:#555555;font-size:15px;line-height:1.6;margin:0 0 24px;">If these numbers look interesting, I'd love to hop on a quick call and walk you through the details. No pressure — just want to make sure you have the full picture.</p>
+
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 28px;">
+<tr>
+<td style="background-color:#1a1a1a;border-radius:8px;">
+<a href="${calendarLink}" target="_blank" style="display:inline-block;padding:14px 32px;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;">Schedule a 5-min call</a>
+</td>
+</tr>
+</table>
+
+<p style="color:#999999;font-size:13px;line-height:1.6;margin:0 0 4px;">Or just reply to this email — I'll get right back to you.</p>
+
+<!-- Divider -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
+<tr><td style="border-top:1px solid #eeeeee;"></td></tr>
+</table>
+
+<p style="color:#999999;font-size:12px;line-height:1.6;margin:0 0 4px;">This estimate is based on the information you shared during your call with Alex. Actual savings may vary once we review your full processing details. There's no obligation and no cost for the comparison.</p>
+
+</td>
+</tr>
+
+<!-- Footer -->
+<tr>
+<td style="background-color:#fafaf8;padding:24px 40px;border-top:1px solid #eeeeee;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+<tr>
+<td>
+<p style="color:#1a1a1a;font-size:14px;font-weight:600;margin:0 0 2px;">Max</p>
+<p style="color:#999999;font-size:13px;margin:0 0 2px;">01 Payments</p>
+<p style="color:#999999;font-size:13px;margin:0;">max@01payments.com</p>
+</td>
+<td align="right" valign="top">
+<p style="color:#999999;font-size:13px;margin:0;">Sacramento, CA</p>
+</td>
+</tr>
+</table>
+</td>
+</tr>
 
 </table>
-</td></tr>
+</td>
+</tr>
 </table>
+
 </body>
 </html>`,
   });

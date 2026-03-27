@@ -11,6 +11,7 @@
 import { requireRetellSignature } from '../middleware/retell-verify.js';
 import { upsertLead, updateLeadStatus, saveCallRecord } from '../services/leads.js';
 import { sendUploadLink, sendPostCallFollowUp, sendLeadCaptureNotification } from '../services/email.js';
+import { runCallEstimate } from '../services/estimate.js';
 
 export default async function retellRoutes(fastify) {
   // Apply signature verification to all routes in this plugin
@@ -111,8 +112,8 @@ export default async function retellRoutes(fastify) {
 
         // Merge: extracted analysis takes precedence, dynamic vars fill gaps
         const lead = {
-          ownerName:        extracted.owner_name       || vars.owner_name,
-          ownerEmail:       extracted.owner_email      || vars.owner_email,
+          ownerName:        extracted.owner_name,
+          ownerEmail:       extracted.owner_email,
           businessName:     vars.business_name,
           businessType:     vars.business_type,
           city:             vars.city,
@@ -121,6 +122,8 @@ export default async function retellRoutes(fastify) {
           leadQuality:      extracted.lead_quality,
           currentProcessor: extracted.current_processor,
           currentRate:      extracted.current_rate,
+          monthlyVolume:    extracted.monthly_volume,
+          contractStatus:   extracted.contract_status,
           callbackTime:     extracted.callback_time,
         };
 
@@ -128,8 +131,25 @@ export default async function retellRoutes(fastify) {
         console.log('[webhook] hasEmail:', hasEmail, '| ownerEmail:', lead.ownerEmail);
 
         if (hasEmail) {
+          const estimate = runCallEstimate({
+            businessName:     lead.businessName,
+            currentProcessor: lead.currentProcessor,
+            rawVolume:        lead.monthlyVolume,
+            rawRate:          lead.currentRate,
+          });
+          console.log('[webhook] estimate:', JSON.stringify(estimate));
+
           try {
-            const followUpResult = await sendPostCallFollowUp({ email: lead.ownerEmail, ownerName: lead.ownerName });
+            const followUpResult = await sendPostCallFollowUp({
+              email:             lead.ownerEmail,
+              ownerName:         lead.ownerName,
+              currentProcessor:  lead.currentProcessor,
+              monthlyVolume:     lead.monthlyVolume,
+              currentRate:       lead.currentRate,
+              monthlySavings:    estimate.monthlySavings,
+              annualSavings:     estimate.annualSavings,
+              savingsExplanation: estimate.savingsExplanation,
+            });
             console.log('[webhook] follow-up sent:', JSON.stringify(followUpResult));
           } catch (err) {
             console.error('[webhook] RESEND ERROR (follow-up):', err?.message, err?.statusCode);
