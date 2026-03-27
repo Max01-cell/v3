@@ -18,15 +18,36 @@ const AVG_TICKET = 50;
 
 const PROCESSOR_RATES = {
   // Square overhauled pricing Oct 2025: raised per-txn from $0.10 → $0.15
-  'square':   { pct: 0.026, perTxn: 0.15 },
-  'stripe':   { pct: 0.027, perTxn: 0.05 },
-  'paypal':   { pct: 0.0229, perTxn: 0.09 },
-  'zettle':   { pct: 0.0229, perTxn: 0.09 },
+  'square':         { pct: 0.026,  perTxn: 0.15 },
+  'stripe':         { pct: 0.027,  perTxn: 0.05 },
+  'paypal':         { pct: 0.0229, perTxn: 0.09 },
+  'zettle':         { pct: 0.0229, perTxn: 0.09 },
   // Clover paid-plan rate (most merchants are on a paid plan)
-  'clover':   { pct: 0.023, perTxn: 0.10 },
+  'clover':         { pct: 0.023,  perTxn: 0.10 },
   // Toast standard plan (paid hardware upfront)
-  'toast':    { pct: 0.0249, perTxn: 0.15 },
-  'shopify':  { pct: 0.026, perTxn: 0.10 },
+  'toast':          { pct: 0.0249, perTxn: 0.15 },
+  'shopify':        { pct: 0.026,  perTxn: 0.10 },
+  // Bank processors (card-present swiped rate)
+  'bank of america': { pct: 0.0265, perTxn: 0.10 },
+  'bofa':           { pct: 0.0265, perTxn: 0.10 },
+  'chase':          { pct: 0.025,  perTxn: 0.10 },
+  'wells fargo':    { pct: 0.026,  perTxn: 0.15 },
+  // ISO/acquirer processors — blended all-in estimates (no standard per-txn published)
+  'heartland':      { pct: 0.024,  perTxn: 0.00 },
+  'global payments': { pct: 0.024, perTxn: 0.00 },
+  'fiserv':         { pct: 0.025,  perTxn: 0.00 },
+  'first data':     { pct: 0.025,  perTxn: 0.00 },
+  'worldpay':       { pct: 0.027,  perTxn: 0.30 },
+  'elavon':         { pct: 0.023,  perTxn: 0.00 },
+  'tsys':           { pct: 0.025,  perTxn: 0.00 },
+  'transfirst':     { pct: 0.025,  perTxn: 0.00 },
+  'gravity':        { pct: 0.025,  perTxn: 0.10 },
+  // Membership/subscription models — effective all-in for card-present
+  'stax':           { pct: 0.020,  perTxn: 0.08 },
+  'fattmerchant':   { pct: 0.020,  perTxn: 0.08 },
+  'payment depot':  { pct: 0.022,  perTxn: 0.07 },
+  // Higher-rate processors
+  'paysafe':        { pct: 0.030,  perTxn: 0.00 },
 };
 
 // Generic fallback for processors we don't have data on

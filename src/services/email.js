@@ -304,30 +304,99 @@ ${howWeGetThere}
  *
  * @param {{ ownerName, email, businessType, currentProcessor, leadQuality, callOutcome }} params
  */
-export async function sendLeadCaptureNotification({ ownerName, ownerEmail, businessName, businessType, city, callOutcome, objectionGiven, leadQuality, currentProcessor, currentRate, callbackTime }) {
+export async function sendLeadCaptureNotification({ ownerName, ownerEmail, businessName, businessType, city, callOutcome, objectionGiven, leadQuality, currentProcessor, currentRate, monthlyVolume, callbackTime }) {
+  const qualityColor = leadQuality?.toLowerCase() === 'hot' ? '#c62828'
+    : leadQuality?.toLowerCase() === 'warm' ? '#e65100'
+    : '#37474f';
+
+  const row = (label, value) => value && value !== 'n/a' ? `
+    <tr>
+      <td style="padding:8px 0;color:#999999;font-size:14px;width:160px;">${label}</td>
+      <td style="padding:8px 0;color:#1a1a1a;font-size:14px;font-weight:600;">${value}</td>
+    </tr>` : '';
+
   return getResend().emails.send({
     from: getFrom(),
     to: getAdmin(),
-    subject: `New Lead — ${leadQuality?.toUpperCase() || 'UNKNOWN'} | ${businessName || ownerName || ownerEmail}`,
-    html: `
-      <h2>Email captured from post-call analysis</h2>
-      <p>
-        <strong>Name:</strong> ${ownerName || 'n/a'}<br>
-        <strong>Business:</strong> ${businessName || 'n/a'}<br>
-        <strong>Business Type:</strong> ${businessType || 'n/a'}<br>
-        <strong>City:</strong> ${city || 'n/a'}<br>
-        <strong>Email:</strong> ${ownerEmail}<br>
-      </p>
-      <h3>Call Analysis</h3>
-      <p>
-        <strong>Lead Quality:</strong> ${leadQuality || 'n/a'}<br>
-        <strong>Call Outcome:</strong> ${callOutcome || 'n/a'}<br>
-        <strong>Objection:</strong> ${objectionGiven || 'n/a'}<br>
-        <strong>Current Processor:</strong> ${currentProcessor || 'n/a'}<br>
-        <strong>Current Rate:</strong> ${currentRate || 'n/a'}<br>
-        <strong>Callback Time:</strong> ${callbackTime || 'n/a'}
-      </p>
-    `,
+    subject: `New Lead — ${leadQuality?.toUpperCase() || 'CALL'} | ${businessName || ownerName || ownerEmail}`,
+    html: `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#f4f4f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f0;padding:40px 20px;">
+<tr><td align="center">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+
+<!-- Header -->
+<tr>
+<td style="background-color:#1a1a1a;padding:32px 40px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+<tr>
+<td>
+  <span style="color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.5px;">01</span>
+  <span style="color:#999999;font-size:22px;font-weight:300;letter-spacing:-0.5px;"> Payments</span>
+</td>
+<td align="right">
+  <span style="display:inline-block;background-color:${qualityColor};color:#ffffff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:4px 10px;border-radius:4px;">${leadQuality || 'Lead'}</span>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+
+<!-- Content -->
+<tr>
+<td style="padding:40px;">
+
+<p style="color:#1a1a1a;font-size:18px;font-weight:600;margin:0 0 4px;">New lead captured post-call</p>
+<p style="color:#999999;font-size:14px;margin:0 0 28px;">Email extracted from Retell call analysis</p>
+
+<!-- Contact info -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8f8f5;border-radius:8px;margin-bottom:24px;">
+<tr><td style="padding:24px;">
+<p style="color:#999999;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;">Contact</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+  ${row('Name', ownerName)}
+  ${row('Email', ownerEmail)}
+  ${row('Business', businessName)}
+  ${row('Business type', businessType)}
+  ${row('City', city)}
+</table>
+</td></tr>
+</table>
+
+<!-- Call analysis -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8f8f5;border-radius:8px;margin-bottom:24px;">
+<tr><td style="padding:24px;">
+<p style="color:#999999;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;">Call Analysis</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+  ${row('Call outcome', callOutcome)}
+  ${row('Objection', objectionGiven)}
+  ${row('Processor', currentProcessor)}
+  ${row('Current rate', currentRate)}
+  ${row('Monthly volume', monthlyVolume)}
+  ${row('Callback time', callbackTime)}
+</table>
+</td></tr>
+</table>
+
+</td>
+</tr>
+
+<!-- Footer -->
+<tr>
+<td style="background-color:#fafaf8;padding:20px 40px;border-top:1px solid #eeeeee;">
+<p style="color:#999999;font-size:13px;margin:0;">01 Payments · Internal notification · max@01payments.com</p>
+</td>
+</tr>
+
+</table>
+</td></tr>
+</table>
+
+</body>
+</html>`,
   });
 }
 
