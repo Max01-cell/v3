@@ -304,7 +304,7 @@ ${howWeGetThere}
  *
  * @param {{ ownerName, email, businessType, currentProcessor, leadQuality, callOutcome }} params
  */
-export async function sendLeadCaptureNotification({ ownerName, ownerEmail, businessName, businessType, city, callOutcome, objectionGiven, leadQuality, currentProcessor, currentRate, monthlyVolume, callbackTime }) {
+export async function sendLeadCaptureNotification({ ownerName, ownerEmail, businessName, businessType, city, callOutcome, objectionGiven, leadQuality, currentProcessor, currentRate, monthlyVolume, callbackTime, engineBreakdown }) {
   const qualityColor = leadQuality?.toLowerCase() === 'hot' ? '#c62828'
     : leadQuality?.toLowerCase() === 'warm' ? '#e65100'
     : '#37474f';
@@ -314,6 +314,65 @@ export async function sendLeadCaptureNotification({ ownerName, ownerEmail, busin
       <td style="padding:8px 0;color:#999999;font-size:14px;width:160px;">${label}</td>
       <td style="padding:8px 0;color:#1a1a1a;font-size:14px;font-weight:600;">${value}</td>
     </tr>` : '';
+
+  const engineSection = engineBreakdown ? (() => {
+    const bd = engineBreakdown;
+    const processorRowsHtml = bd.processorRows.map(p => `
+      <tr style="${p.best ? 'background-color:#f0fdf4;' : ''}">
+        <td style="padding:8px 12px;font-size:13px;color:#1a1a1a;border-top:1px solid #eeeeee;">${p.name}${p.best ? ' ★' : ''}</td>
+        <td style="padding:8px 12px;font-size:13px;color:#1a1a1a;text-align:right;border-top:1px solid #eeeeee;">$${p.floorCost.toFixed(2)}/mo</td>
+        <td style="padding:8px 12px;font-size:13px;color:${p.merchantSavings > 0 ? '#2e7d32' : '#c62828'};font-weight:600;text-align:right;border-top:1px solid #eeeeee;">${p.merchantSavings > 0 ? '+' : ''}$${p.merchantSavings.toFixed(0)} saved</td>
+        <td style="padding:8px 12px;font-size:13px;color:#999999;text-align:right;border-top:1px solid #eeeeee;">$${p.ourResidual.toFixed(0)} residual</td>
+      </tr>`).join('');
+
+    return `
+<!-- Engine analysis -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8f8f5;border-radius:8px;margin-bottom:24px;">
+<tr><td style="padding:24px;">
+<p style="color:#999999;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:0 0 16px;">Engine Analysis</p>
+
+<!-- Rate derivation -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
+  <tr>
+    <td style="padding:4px 0;color:#999999;font-size:13px;width:160px;">Rate used</td>
+    <td style="padding:4px 0;color:#1a1a1a;font-size:13px;font-weight:600;">${bd.effectiveRatePct}</td>
+  </tr>
+  <tr>
+    <td style="padding:4px 0;color:#999999;font-size:13px;">Rate source</td>
+    <td style="padding:4px 0;color:#555555;font-size:13px;">${bd.rateSource}</td>
+  </tr>
+  <tr>
+    <td style="padding:4px 0;color:#999999;font-size:13px;">Volume modeled</td>
+    <td style="padding:4px 0;color:#1a1a1a;font-size:13px;font-weight:600;">${bd.formattedVolume}/mo</td>
+  </tr>
+  <tr>
+    <td style="padding:4px 0;color:#999999;font-size:13px;">Current est. cost</td>
+    <td style="padding:4px 0;color:#1a1a1a;font-size:13px;font-weight:600;">$${bd.currentMonthlyCost.toFixed(2)}/mo</td>
+  </tr>
+  <tr>
+    <td style="padding:4px 0;color:#999999;font-size:13px;">Recommendation</td>
+    <td style="padding:4px 0;font-size:13px;font-weight:600;color:${bd.recommendation === 'SWITCH' ? '#2e7d32' : '#555555'};">${bd.recommendation}</td>
+  </tr>
+  ${bd.recommendationReason ? `<tr>
+    <td style="padding:4px 0;color:#999999;font-size:13px;vertical-align:top;">Reason</td>
+    <td style="padding:4px 0;color:#555555;font-size:13px;">${bd.recommendationReason}</td>
+  </tr>` : ''}
+</table>
+
+<!-- Processor comparison table -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;">
+  <tr style="background-color:#f0f0ec;">
+    <td style="padding:8px 12px;font-size:11px;font-weight:600;color:#999999;text-transform:uppercase;letter-spacing:0.5px;">Processor / Tier</td>
+    <td style="padding:8px 12px;font-size:11px;font-weight:600;color:#999999;text-transform:uppercase;letter-spacing:0.5px;text-align:right;">Floor Cost</td>
+    <td style="padding:8px 12px;font-size:11px;font-weight:600;color:#999999;text-transform:uppercase;letter-spacing:0.5px;text-align:right;">Merchant Saves</td>
+    <td style="padding:8px 12px;font-size:11px;font-weight:600;color:#999999;text-transform:uppercase;letter-spacing:0.5px;text-align:right;">Our Residual</td>
+  </tr>
+  ${processorRowsHtml}
+</table>
+
+</td></tr>
+</table>`;
+  })() : '';
 
   return getResend().emails.send({
     from: getFrom(),
@@ -380,6 +439,8 @@ export async function sendLeadCaptureNotification({ ownerName, ownerEmail, busin
 </table>
 </td></tr>
 </table>
+
+${engineSection}
 
 </td>
 </tr>

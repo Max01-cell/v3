@@ -203,6 +203,46 @@ function buildSyntheticStatement({ volume, effectiveRate, businessName, currentP
 }
 
 // ---------------------------------------------------------------------------
+// Admin engine breakdown
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a structured breakdown for the admin notification.
+ * Shows what rate was used, why, and how each processor stacked up.
+ */
+function buildEngineBreakdown({ volume, effectiveRate, rawRate, currentProcessor, comparison }) {
+  const rateProvided = parseRate(rawRate) !== null;
+  const ratePct = (effectiveRate * 100).toFixed(2);
+  const rateSource = rateProvided
+    ? `Merchant-provided: ${rawRate} → ${ratePct}%`
+    : currentProcessor
+      ? `Defaulted from ${currentProcessor} rates → ${ratePct}%`
+      : `Generic fallback → ${ratePct}%`;
+
+  const currentMonthlyCost = comparison.currentCost;
+  const processorRows = comparison.comparisons
+    .slice()
+    .sort((a, b) => b.merchantSavings - a.merchantSavings)
+    .map(c => ({
+      name:           `${c.processorName} — ${c.tierName}`,
+      floorCost:      c.floorCost,
+      merchantSavings: c.merchantSavings,
+      ourResidual:    c.ourResidual,
+      best:           !!c.bestForMerchant,
+    }));
+
+  return {
+    rateSource,
+    formattedVolume: `$${volume.toLocaleString()}`,
+    effectiveRatePct: `${ratePct}%`,
+    currentMonthlyCost,
+    recommendation: comparison.recommendation.action,
+    recommendationReason: comparison.recommendation.reason,
+    processorRows,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Savings explanation
 // ---------------------------------------------------------------------------
 
@@ -253,8 +293,9 @@ export function runCallEstimate({ businessName, currentProcessor, rawVolume, raw
       savingsExplanation: buildSavingsExplanation(comparison),
       formattedVolume,
       displayRate,
+      engineBreakdown:    buildEngineBreakdown({ volume, effectiveRate, rawRate, currentProcessor, comparison }),
     };
   } catch (err) {
-    return { canEstimate: false, monthlySavings: null, annualSavings: null, savingsExplanation: null, formattedVolume, displayRate };
+    return { canEstimate: false, monthlySavings: null, annualSavings: null, savingsExplanation: null, formattedVolume, displayRate, engineBreakdown: null };
   }
 }

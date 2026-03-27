@@ -158,7 +158,7 @@ export default async function retellRoutes(fastify) {
           }
 
           try {
-            const notifResult = await sendLeadCaptureNotification(lead);
+            const notifResult = await sendLeadCaptureNotification({ ...lead, engineBreakdown: estimate.engineBreakdown });
             console.log('[webhook] admin notif sent:', JSON.stringify(notifResult));
           } catch (err) {
             console.error('[webhook] RESEND ERROR (admin notif):', err?.message, err?.statusCode);
