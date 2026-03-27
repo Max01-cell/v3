@@ -177,7 +177,7 @@
     "Pick-A-Tier — choose per deal",
     "Does NOT support Clover — has proprietary Exatouch POS",
     "$5 statement fee + $25 monthly minimum required for ALL bonuses",
-    "Accounts with waived ETF NOT eligible for multiplier bonuses",
+    "Accounts with waived ETF NOT eligible for multiplier bonuses — Options B and D are BLOCKED for month-to-month boarding.",
     "$15,000 fast track bonus for 30 approved deals in first 90 days",
     "Multipliers on 2ND MONTH residual, less annual fees and upfront bonus",
     "Bonuses retracted if merchant closes within 12 months",
@@ -186,5 +186,17 @@
     "CBD merchants add 0.10-0.20% BIN depending on tier",
     "High-risk merchants add 0.05% BIN (all tiers)",
     "Fiserv frontend available as alternative to Cygma — slightly different auth fees"
-  ]
+  ],
+  "faq": {
+    "no_contract": true,
+    "no_setup_fee": true,
+    "same_day_approval": true,
+    "free_terminal": true,
+    "live_3_to_5_days": true
+  },
+  "monthToMonth": {
+    "recommendedTiers": ["A", "F"],
+    "disabledTiersForMultiplier": ["B", "D"],
+    "notes": "Options B and D multiplier bonuses are LOST for month-to-month merchants (no ETF). Option A 1x multiplier (cap $500) is still eligible. Use Option A for standard deals, Option F for BYOD merchants."
+  }
 }

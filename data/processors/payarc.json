@@ -1,0 +1,112 @@
+{
+  "id": "payarc",
+  "name": "PayArc",
+  "platform": "Fiserv",
+  "status": "signed",
+  "contact": null,
+  "binSponsorshipRate": 0.0002,
+  "posCompatibility": ["open", "standalone"],
+  "proprietaryPOS": null,
+  "restaurantPOS": null,
+  "contract": {
+    "termYears": null,
+    "exclusive": false,
+    "residualsVested": true,
+    "residualsSurviveThreshold": null,
+    "nonSolicitationPenalty": "$500 ETF agent-side (collected revenue only)"
+  },
+  "fastTrackBonus": null,
+  "faq": {
+    "no_contract": true,
+    "no_setup_fee": true,
+    "same_day_approval": true,
+    "free_terminal": true,
+    "live_3_to_5_days": true,
+    "_freeTerminalNote": "Free terminal for low-risk tier only."
+  },
+  "tiers": [
+    {
+      "tierId": "low-risk",
+      "tierName": "Low Risk (90% Split)",
+      "residualSplit": 0.90,
+      "riskResidualSplit": null,
+      "authFee": 0.06,
+      "amexAuthFee": null,
+      "batchFee": 0.03,
+      "avsFee": 0.02,
+      "pinDebitFee": 0.03,
+      "amexBinRate": 0.0015,
+      "posPlacementAmexBinRate": null,
+      "monthlyFees": [
+        { "name": "Gateway Fee", "amount": 5.00, "split": null, "conditional": null },
+        { "name": "Customer Service Fee", "amount": 9.00, "split": null, "conditional": null },
+        { "name": "PCI Compliance", "amount": 3.95, "split": null, "conditional": null },
+        { "name": "Fiserv Surcharge", "amount": 2.00, "split": null, "conditional": null }
+      ],
+      "signingBonus": null,
+      "advance": null,
+      "multiplier": null,
+      "freeTerminal": true,
+      "posPlacement": null,
+      "bonusRequirements": null,
+      "notes": "Standard low-risk merchants. auth=$0.03 + gateway=$0.03/txn combined as authFee=$0.06. Chargeback $13.50, retrieval $10.00 (per-incident, not in monthly calc)."
+    },
+    {
+      "tierId": "mid-risk",
+      "tierName": "Mid Risk (70% Split)",
+      "residualSplit": 0.70,
+      "riskResidualSplit": null,
+      "authFee": 0.06,
+      "amexAuthFee": null,
+      "batchFee": 0.03,
+      "avsFee": 0.02,
+      "pinDebitFee": 0.03,
+      "amexBinRate": 0.0015,
+      "posPlacementAmexBinRate": null,
+      "monthlyFees": [
+        { "name": "Gateway Fee", "amount": 5.00, "split": null, "conditional": null },
+        { "name": "Customer Service Fee", "amount": 9.00, "split": null, "conditional": null },
+        { "name": "PCI Compliance", "amount": 3.95, "split": null, "conditional": null },
+        { "name": "Fiserv Surcharge", "amount": 2.00, "split": null, "conditional": null }
+      ],
+      "signingBonus": null,
+      "advance": null,
+      "multiplier": null,
+      "freeTerminal": false,
+      "posPlacement": null,
+      "bonusRequirements": null,
+      "notes": "Requires < 0.25% chargeback ratio + 3 months statements. Same fees as low-risk, lower split."
+    },
+    {
+      "tierId": "restricted",
+      "tierName": "Restricted / High Risk (50% Split)",
+      "residualSplit": 0.50,
+      "riskResidualSplit": null,
+      "authFee": 0.10,
+      "amexAuthFee": null,
+      "batchFee": 0.10,
+      "avsFee": 0.07,
+      "pinDebitFee": 0.10,
+      "amexBinRate": 0.0035,
+      "posPlacementAmexBinRate": null,
+      "monthlyFees": [
+        { "name": "Gateway Fee", "amount": 7.00, "split": null, "conditional": null },
+        { "name": "High-Risk Monitoring", "amount": 24.99, "split": 0.00, "conditional": null }
+      ],
+      "signingBonus": null,
+      "advance": null,
+      "multiplier": null,
+      "freeTerminal": false,
+      "posPlacement": null,
+      "bonusRequirements": null,
+      "notes": "High-risk/restricted merchants. Chargeback $35.00, high-risk monitoring $24.99/mo (0% split to agent)."
+    }
+  ],
+  "notes": [
+    "DEPRIORITIZED — use only for high-risk/restricted merchants that EPI and Kurve cannot place",
+    "In-house high-risk underwriting — key advantage over other ISOs",
+    "Low-risk free terminal included",
+    "auth $0.06 = combined auth ($0.03) + gateway per-txn ($0.03)",
+    "Mid-risk requires < 0.25% CB ratio + 3 months processing statements"
+  ]
+}

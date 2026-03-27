@@ -92,6 +92,30 @@ export default async function statementRoutes(fastify) {
   });
 
   /**
+   * POST /api/statement/estimate
+   * Quick savings estimate from call-extracted data (no statement required).
+   * Used by Retell webhook and can be called directly for testing.
+   *
+   * Body: { current_processor, current_rate, monthly_volume }
+   */
+  fastify.post('/estimate', async (request, reply) => {
+    const { current_processor, current_rate, monthly_volume } = request.body;
+
+    if (!monthly_volume) {
+      return reply.code(400).send({ error: 'monthly_volume is required' });
+    }
+
+    const { runCallEstimate } = await import('../services/estimate.js');
+    const estimate = runCallEstimate({
+      currentProcessor: current_processor,
+      rawVolume: monthly_volume,
+      rawRate: current_rate,
+    });
+
+    return reply.send(estimate);
+  });
+
+  /**
    * POST /api/statement/analyze
    * Internal endpoint — run comparison on pre-extracted data.
    * Not rate-limited; not exposed publicly.

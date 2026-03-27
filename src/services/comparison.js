@@ -385,6 +385,8 @@ function generateRecommendation(results, statement, posCategory, difficulty) {
       upfrontIncome: 0,
       difficulty,
       reason: 'No processor can beat the current rates. Merchant is already well-priced.',
+      posFlag: null,
+      posFlagMessage: null,
       feesEliminated: [],
       feesThatStay: buildFeesThatStay(statement),
       newFees: [],
@@ -405,6 +407,8 @@ function generateRecommendation(results, statement, posCategory, difficulty) {
       upfrontIncome: best.totalUpfront,
       difficulty,
       reason: `Best savings of $${best.merchantSavings.toFixed(2)}/month is below $50 threshold. Not worth the disruption.`,
+      posFlag: null,
+      posFlagMessage: null,
       feesEliminated: [],
       feesThatStay: buildFeesThatStay(statement),
       newFees: [],
@@ -423,6 +427,8 @@ function generateRecommendation(results, statement, posCategory, difficulty) {
       upfrontIncome: best.totalUpfront,
       difficulty: 'HARD',
       reason: `Merchant has locked POS (${statement.merchant.posSystem}). Savings of $${best.merchantSavings.toFixed(2)}/month doesn't justify switching entire POS ecosystem. Recommend negotiating with current processor.`,
+      posFlag: null,
+      posFlagMessage: null,
       feesEliminated: [],
       feesThatStay: buildFeesThatStay(statement),
       newFees: [],
@@ -441,6 +447,8 @@ function generateRecommendation(results, statement, posCategory, difficulty) {
     upfrontIncome: best.totalUpfront,
     difficulty,
     reason: `Switch to ${best.processorName} (${best.tierName}). Saves merchant $${best.merchantSavings.toFixed(2)}/month ($${best.merchantSavingsAnnual.toFixed(2)}/year).`,
+    posFlag: posCategory === 'locked' ? 'HARDWARE_SWAP_REQUIRED' : null,
+    posFlagMessage: posCategory === 'locked' ? `Merchant must replace existing hardware. Confirm they understand before proceeding.` : null,
     feesEliminated: buildFeesEliminated(statement),
     feesThatStay: buildFeesThatStay(statement),
     newFees: buildNewFees(best),
@@ -495,6 +503,66 @@ export function calculateDebitSavingsHighlight(statement) {
 }
 
 // ---------------------------------------------------------------------------
+// FAQ gate — filter processors that can't satisfy 01payments merchant promises
+// ---------------------------------------------------------------------------
+
+/**
+ * Check if a processor passes the 01payments FAQ requirements for this merchant.
+ * Fields can be: true, false, or 'unconfirmed' (treated as passing — don't block).
+ *
+ * @param {object} processor
+ * @param {string} posCategory
+ * @returns {boolean}
+ */
+function passesFaqGate(processor, posCategory) {
+  const faq = processor.faq;
+  if (!faq) return true; // no FAQ data = don't block (legacy config)
+
+  if (faq.no_contract === false) return false;
+  if (faq.no_setup_fee === false) return false;
+  if (faq.same_day_approval === false) return false;
+  if (faq.live_3_to_5_days === false) return false;
+
+  // Free terminal: required unless merchant already has compatible equipment
+  // 'open' = Pax/Dejavoo/etc can be reprogrammed; 'standalone' = virtual terminal
+  if (faq.free_terminal === false && posCategory !== 'open' && posCategory !== 'standalone') {
+    return false;
+  }
+
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// Month-to-month rules — all merchants are boarded month-to-month (no ETF)
+// ---------------------------------------------------------------------------
+
+/**
+ * Apply month-to-month boarding rules to flattened entries.
+ * - EPI Options B and D: multiplier bonus is LOST without ETF — zero it out
+ * - Beacon Traditional with_advance: HIGH clawback risk — remove advance scenario
+ *
+ * @param {object[]} entries — from flattenProcessorTiers()
+ * @returns {object[]}
+ */
+function applyMonthToMonthRules(entries) {
+  return entries
+    .map(entry => {
+      // EPI Options B and D: multiplier requires ETF — not available month-to-month
+      if (entry.processorId === 'epi' && ['B', 'D'].includes(entry.tierId)) {
+        return { ...entry, multiplier: null };
+      }
+      return entry;
+    })
+    // Beacon Traditional with_advance: advance is clawed back if merchant leaves < 365 days
+    // Month-to-month = merchant can leave anytime = high clawback risk — remove this scenario
+    .filter(entry => !(
+      entry.processorId === 'beacon' &&
+      entry.tierId === 'cardconnect' &&
+      entry.advanceScenario === 'with_advance'
+    ));
+}
+
+// ---------------------------------------------------------------------------
 // STEP 9: Main orchestration + ranking
 // ---------------------------------------------------------------------------
 
@@ -507,15 +575,54 @@ export function calculateDebitSavingsHighlight(statement) {
  * @returns {object} ComparisonResult
  */
 export function runComparison(statement, merchantPosSystem, hardwarePreference = 'open_to_switch') {
-  // Step 1: Load and flatten processors
+  // Step 1: Load processors
   const processors = loadProcessors();
-  const entries = flattenProcessorTiers(processors);
+
+  // Step 3: Determine POS compatibility (moved up — needed for FAQ gate)
+  const { category: posCategory, difficulty } = classifyPOS(merchantPosSystem);
+
+  // Early exit: processor-locked POS (Toast, Heartland) — cannot switch processors at all
+  if (posCategory === 'processorLocked') {
+    const { cost: lockedCurrentCost, warnings: lockedWarnings } = deriveCurrentProcessingCost(statement);
+    return {
+      merchantName: statement.merchant.businessName,
+      currentProcessor: statement.merchant.currentProcessor,
+      currentCost: round2(lockedCurrentCost),
+      totalVolume: statement.volume.totalVolume,
+      posCategory,
+      difficulty,
+      hardwarePreference,
+      marginLabel: null,
+      comparisons: [],
+      recommendation: {
+        action: 'LOCKED_ECOSYSTEM',
+        processorId: null,
+        tierId: null,
+        monthlySavings: 0,
+        annualSavings: 0,
+        ourMonthlyResidual: 0,
+        upfrontIncome: 0,
+        difficulty: 'IMPOSSIBLE',
+        reason: `${statement.merchant.posSystem || 'Current POS'} bundles payment processing with the POS — cannot switch processors without replacing the entire system.`,
+        posFlag: 'LOCKED_ECOSYSTEM',
+        feesEliminated: [],
+        feesThatStay: [],
+        newFees: [],
+      },
+      debitSavingsHighlight: null,
+      warnings: lockedWarnings,
+    };
+  }
+
+  // Apply FAQ gate — filter processors that can't satisfy merchant promises
+  const faqEligible = processors.filter(p => passesFaqGate(p, posCategory));
+
+  // Flatten tiers and apply month-to-month rules
+  const allEntries = flattenProcessorTiers(faqEligible);
+  const entries = applyMonthToMonthRules(allEntries);
 
   // Step 2: Derive current total processing cost
   const { cost: currentCost, warnings: costWarnings } = deriveCurrentProcessingCost(statement);
-
-  // Step 3: Determine POS compatibility
-  const { category: posCategory, difficulty } = classifyPOS(merchantPosSystem);
 
   // Filter to compatible processors
   const compatibleEntries = entries.filter(e => isProcessorCompatible(e, posCategory));

@@ -47,9 +47,9 @@ describe('classifyPOS', () => {
     assert.equal(r.difficulty, 'HARD');
   });
 
-  test('Toast POS → locked/HARD', () => {
+  test('Toast POS → processorLocked/HARD', () => {
     const r = classifyPOS('Toast POS');
-    assert.equal(r.category, 'locked');
+    assert.equal(r.category, 'processorLocked');
     assert.equal(r.difficulty, 'HARD');
   });
 

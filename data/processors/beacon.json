@@ -13,7 +13,7 @@
     "exclusive": false,
     "residualsVested": true,
     "residualsSurviveThreshold": 1000,
-    "nonSolicitationPenalty": "39x average monthly gross fees"
+    "nonSolicitationPenalty": "39x average monthly gross fees — PERMANENT (no time limit, cure: max 3 merchants/year)"
   },
   "fastTrackBonus": null,
   "tiers": [
@@ -118,5 +118,18 @@
     "Bonuses clawed back if merchant processes less than 365 days",
     "TSYS/Payarc is a separate platform — now fully documented with rates",
     "Non-solicitation: 39x average monthly gross fees penalty"
-  ]
+  ],
+  "faq": {
+    "no_contract": true,
+    "no_setup_fee": true,
+    "same_day_approval": true,
+    "free_terminal": true,
+    "live_3_to_5_days": true,
+    "_freeTerminalNote": "Flex Sell provides free Clover equipment by volume tier. Traditional requires merchant already on Clover."
+  },
+  "monthToMonth": {
+    "recommendedTier": "flex-sell",
+    "advanceClawbackRisk": "high",
+    "notes": "Traditional $1,000 advance is clawed back if merchant leaves before 365 days. Month-to-month = HIGH clawback risk. Prefer Flex Sell for month-to-month. Only use Traditional if merchant is already on Clover and high-confidence sticky. PERMANENT non-solicitation applies to ALL Beacon merchants — never re-board a Beacon merchant elsewhere."
+  }
 }

@@ -2,7 +2,7 @@
   "id": "maverick",
   "name": "Maverick Payments",
   "platform": null,
-  "status": "pending",
+  "status": "inactive",
   "contact": null,
   "binSponsorshipRate": 0,
   "posCompatibility": [],
@@ -11,5 +11,9 @@
   "contract": null,
   "fastTrackBonus": null,
   "tiers": [],
-  "notes": ["Known for high-risk + white-label dashboard. Has onboarding API. Need Schedule A."]
+  "notes": [
+    "BLOCKED — agreement not signed, FAQ compliance unverified. DO NOT ROUTE.",
+    "CRITICAL: Maverick owns ALL merchant agreements. Zero portfolio equity for agent.",
+    "Prior unverified rates: low-risk auth $0.0275, BIN 0.02%, AVS $0.01, batch $0.01, monthly $10/MID; 90% share"
+  ]
 }

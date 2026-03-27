@@ -10,8 +10,8 @@
 const POS_CATEGORIES = {
   open:            ['pax', 'dejavoo', 'verifone', 'ingenico'],
   clover:          ['clover'],
-  locked:          ['square', 'toast', 'shopify', 'spoton', 'lightspeed', 'ncr', 'micros'],
-  processorLocked: ['heartland', 'genius'],
+  locked:          ['square', 'shopify', 'spoton', 'lightspeed', 'ncr', 'micros'],
+  processorLocked: ['heartland', 'genius', 'toast'],
   semiOpen:        ['revel'],
   standalone:      ['standalone', 'virtual terminal', 'no pos', 'none', ''],
 };
@@ -78,7 +78,7 @@ export const POS_COMPATIBILITY = {
     notes: "Clover Software Fee does NOT go away — it gets replaced by processor's Clover platform fee",
   },
   locked: {
-    systems: ['Square', 'Toast', 'Shopify POS', 'SpotOn', 'Lightspeed', 'NCR', 'Micros'],
+    systems: ['Square', 'Shopify POS', 'SpotOn', 'Lightspeed', 'NCR', 'Micros'],
     difficulty: 'HARD',
     action: 'Must switch hardware — merchant loses current POS ecosystem',
     threshold: 'Only recommend if processing-only savings exceed $500/month',
@@ -89,10 +89,10 @@ export const POS_COMPATIBILITY = {
     ],
   },
   processorLocked: {
-    systems: ['Heartland terminal', 'Genius terminal'],
-    lockedTo: 'Global Payments / Heartland',
+    systems: ['Heartland terminal', 'Genius terminal', 'Toast'],
+    lockedTo: 'Global Payments / Heartland, or bundled POS processor',
     difficulty: 'HARD',
-    action: 'Hardware locked to Global Payments — must replace terminal',
+    action: 'Processing is bundled with POS — cannot switch processors without replacing entire system',
   },
   semiOpen: {
     systems: ['Revel'],

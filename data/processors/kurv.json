@@ -81,5 +81,13 @@
     "EMS Plus merchants: batch fee = $0.10, monthly access/tech/breach fees currently waived",
     "BizFunds cash advance bonus: 2.5% of funded amount upfront + 2.5% monthly until 5% total",
     "Risk merchant BIN sponsorship is 0.10% (vs 0.02% retail) — must use risk tier for quoting"
-  ]
+  ],
+  "faq": {
+    "no_contract": "unconfirmed",
+    "no_setup_fee": true,
+    "same_day_approval": "unconfirmed",
+    "free_terminal": false,
+    "live_3_to_5_days": "unconfirmed",
+    "_pendingNote": "3 FAQ items unconfirmed — pending verification with EMS rep before standard routing."
+  }
 }

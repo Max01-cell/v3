@@ -50,6 +50,13 @@ export function initDatabase() {
     CREATE INDEX IF NOT EXISTS idx_calls_lead_id ON calls(lead_id);
   `);
 
+  // Migrate: add boarding tracking columns if not present
+  const existingCols = db.prepare('PRAGMA table_info(leads)').all().map(c => c.name);
+  if (!existingCols.includes('boarded_iso'))           db.exec('ALTER TABLE leads ADD COLUMN boarded_iso TEXT');
+  if (!existingCols.includes('boarded_tier'))          db.exec('ALTER TABLE leads ADD COLUMN boarded_tier TEXT');
+  if (!existingCols.includes('boarded_date'))          db.exec('ALTER TABLE leads ADD COLUMN boarded_date TEXT');
+  if (!existingCols.includes('non_solicit_permanent')) db.exec('ALTER TABLE leads ADD COLUMN non_solicit_permanent INTEGER DEFAULT 0');
+
   return db;
 }
 
@@ -122,4 +129,24 @@ export function saveAnalysis(leadId, analysisJson) {
 
 export function getCallsByLeadId(leadId) {
   return db.prepare('SELECT * FROM calls WHERE lead_id = ? ORDER BY timestamp DESC').all(leadId);
+}
+
+/**
+ * Record that a merchant has been boarded with an ISO.
+ * Critical: prevents re-routing due to non-solicitation clauses.
+ *
+ * @param {string} leadId
+ * @param {{ boardedIso, boardedTier, nonSolicitPermanent }} params
+ */
+export function boardLead(leadId, { boardedIso, boardedTier, nonSolicitPermanent = false }) {
+  db.prepare(`
+    UPDATE leads SET
+      boarded_iso = ?,
+      boarded_tier = ?,
+      boarded_date = datetime('now'),
+      non_solicit_permanent = ?,
+      status = 'boarded',
+      updated_at = datetime('now')
+    WHERE id = ?
+  `).run(boardedIso, boardedTier, nonSolicitPermanent ? 1 : 0, leadId);
 }
