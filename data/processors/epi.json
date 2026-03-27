@@ -45,6 +45,7 @@
     {
       "tierId": "B",
       "tierName": "Option B — 6x Multiplier",
+      "requires_etf": true,
       "residualSplit": 0.50,
       "riskResidualSplit": null,
       "authFee": 0.025,
