@@ -146,9 +146,11 @@ export default async function retellRoutes(fastify) {
               currentProcessor:  lead.currentProcessor,
               monthlyVolume:     lead.monthlyVolume,
               currentRate:       lead.currentRate,
-              monthlySavings:    estimate.monthlySavings,
-              annualSavings:     estimate.annualSavings,
+              monthlySavings:     estimate.monthlySavings,
+              annualSavings:      estimate.annualSavings,
               savingsExplanation: estimate.savingsExplanation,
+              formattedVolume:    estimate.formattedVolume,
+              displayRate:        estimate.displayRate,
             });
             console.log('[webhook] follow-up sent:', JSON.stringify(followUpResult));
           } catch (err) {

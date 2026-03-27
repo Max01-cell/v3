@@ -151,7 +151,7 @@ export async function sendSavingsReport({ email, ownerName, comparison }) {
  *
  * @param {{ email, ownerName, currentProcessor, monthlyVolume, currentRate, monthlySavings, annualSavings, savingsExplanation }} params
  */
-export async function sendPostCallFollowUp({ email, ownerName, currentProcessor, monthlyVolume, currentRate, monthlySavings, annualSavings, savingsExplanation }) {
+export async function sendPostCallFollowUp({ email, ownerName, currentProcessor, monthlyVolume, currentRate, monthlySavings, annualSavings, savingsExplanation, formattedVolume, displayRate }) {
   const publicUrl    = process.env.PUBLIC_URL   || 'https://01payments.com';
   const calendarLink = process.env.CALENDAR_LINK || `${publicUrl}/get-quote`;
 
@@ -233,11 +233,11 @@ export async function sendPostCallFollowUp({ email, ownerName, currentProcessor,
 </tr>
 <tr>
 <td style="padding:4px 0;color:#555555;font-size:14px;">Estimated monthly volume</td>
-<td align="right" style="padding:4px 0;color:#1a1a1a;font-size:14px;font-weight:600;">${monthlyVolume || '—'}</td>
+<td align="right" style="padding:4px 0;color:#1a1a1a;font-size:14px;font-weight:600;">${formattedVolume || monthlyVolume || '—'}</td>
 </tr>
 <tr>
 <td style="padding:4px 0;color:#555555;font-size:14px;">Current rate</td>
-<td align="right" style="padding:4px 0;color:#1a1a1a;font-size:14px;font-weight:600;">${currentRate || '—'}</td>
+<td align="right" style="padding:4px 0;color:#1a1a1a;font-size:14px;font-weight:600;">${displayRate || currentRate || '—'}</td>
 </tr>
 </table>
 </td>

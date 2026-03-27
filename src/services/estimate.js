@@ -45,21 +45,61 @@ function getDefaultRate(processorName) {
 // Parsers
 // ---------------------------------------------------------------------------
 
+// Strip hedging qualifiers before parsing: "a little below seventy five" → "seventy five"
+const QUALIFIER_RE = /\b(a\s+little\s+|just\s+|about\s+|around\s+|approximately\s+|roughly\s+|maybe\s+|close\s+to\s+|nearly\s+|almost\s+)(over\s+|under\s+|above\s+|below\s+|less\s+than\s+|more\s+than\s+)*/gi;
+
+// English word → number map for spoken volume inputs
+const WORD_NUMS = {
+  zero:0, one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9,
+  ten:10, eleven:11, twelve:12, thirteen:13, fourteen:14, fifteen:15,
+  sixteen:16, seventeen:17, eighteen:18, nineteen:19,
+  twenty:20, thirty:30, forty:40, fifty:50, sixty:60, seventy:70, eighty:80, ninety:90,
+  hundred:100, thousand:1000, million:1000000,
+};
+
+function wordToNumber(s) {
+  const words = s.toLowerCase().replace(/[^a-z\s]/g, '').trim().split(/\s+/);
+  let total = 0;
+  let current = 0;
+  for (const w of words) {
+    const v = WORD_NUMS[w];
+    if (v == null) continue;
+    if (v === 100)         { current = (current || 1) * 100; }
+    else if (v >= 1000)    { total += (current || 1) * v; current = 0; }
+    else                   { current += v; }
+  }
+  total += current;
+  return total > 0 ? total : null;
+}
+
 /**
- * Parse a volume string like "$50,000", "50k", "50K", "50000" → number.
+ * Parse a volume string to a dollar amount.
+ * Handles: "$50,000" | "50k" | "50000" | "seventy five" | "a little below seventy five"
+ * Numbers under 1000 with no explicit unit are treated as thousands (payment processing context).
  */
 function parseVolume(raw) {
   if (!raw) return null;
-  const s = String(raw).replace(/[$,\s]/g, '').toLowerCase();
-  if (s.endsWith('k')) return parseFloat(s) * 1000;
-  if (s.endsWith('m')) return parseFloat(s) * 1_000_000;
-  const n = parseFloat(s);
-  return isNaN(n) ? null : n;
+
+  // Strip qualifiers first
+  const stripped = String(raw).replace(QUALIFIER_RE, '').trim();
+
+  // Numeric parsing: $50,000 | 50k | 50m | 50000
+  const cleaned = stripped.replace(/[$,\s]/g, '').toLowerCase();
+  if (cleaned.endsWith('k')) { const n = parseFloat(cleaned); if (!isNaN(n)) return n * 1000; }
+  if (cleaned.endsWith('m')) { const n = parseFloat(cleaned); if (!isNaN(n)) return n * 1_000_000; }
+  const numeric = parseFloat(cleaned);
+  if (!isNaN(numeric) && numeric > 0) return numeric < 1000 ? numeric * 1000 : numeric;
+
+  // Word-to-number fallback: "seventy five" → 75 → 75000
+  const fromWords = wordToNumber(stripped);
+  if (fromWords) return fromWords < 1000 ? fromWords * 1000 : fromWords;
+
+  return null;
 }
 
 /**
  * Parse a rate string like "2.7%", "2.7", "2.65% + $0.10" → decimal (0.027).
- * Takes the first numeric value found and treats it as a percentage if > 1.
+ * Returns null if no valid number found (e.g. "I don't know").
  */
 function parseRate(raw) {
   if (!raw) return null;
@@ -70,6 +110,17 @@ function parseRate(raw) {
   return n > 1 ? n / 100 : n;
 }
 
+/**
+ * Get a display label for the rate used in the estimate.
+ * If merchant provided their rate, show it. If we defaulted, show the assumed rate.
+ */
+function getDisplayRate(rawRate, effectiveRate, processorName) {
+  if (parseRate(rawRate) !== null) return rawRate; // merchant provided it
+  const pct = (effectiveRate * 100).toFixed(1);
+  const label = processorName ? `${processorName} est.` : 'est.';
+  return `~${pct}% (${label})`;
+}
+
 // ---------------------------------------------------------------------------
 // Synthetic statement
 // ---------------------------------------------------------------------------
@@ -77,14 +128,23 @@ function parseRate(raw) {
 const CARD_MIX = { visaMc: 0.65, amex: 0.10, discover: 0.10, debit: 0.15 };
 const CNP_PERCENT = 10;
 
+// Blended card-present interchange estimate (Visa/MC/Discover average).
+// Split from effectiveRate so the comparison engine can correctly model
+// processor markup (what Square/Stripe keep above interchange) as the savings target.
+const ESTIMATED_INTERCHANGE = 0.018;
+
 function buildSyntheticStatement({ volume, effectiveRate, businessName, currentProcessor, posSystem }) {
-  const totalTransactions   = Math.round(volume / AVG_TICKET);
-  const visaMcTransactions  = Math.round(totalTransactions * CARD_MIX.visaMc);
-  const amexTransactions    = Math.round(totalTransactions * CARD_MIX.amex);
+  const totalTransactions    = Math.round(volume / AVG_TICKET);
+  const visaMcTransactions   = Math.round(totalTransactions * CARD_MIX.visaMc);
+  const amexTransactions     = Math.round(totalTransactions * CARD_MIX.amex);
   const discoverTransactions = Math.round(totalTransactions * CARD_MIX.discover);
-  const debitTransactions   = Math.round(totalTransactions * CARD_MIX.debit);
-  const amexVolume          = volume * CARD_MIX.amex;
-  const debitVolume         = volume * CARD_MIX.debit;
+  const debitTransactions    = Math.round(totalTransactions * CARD_MIX.debit);
+  const amexVolume           = volume * CARD_MIX.amex;
+  const debitVolume          = volume * CARD_MIX.debit;
+
+  // Processor markup = what the flat-rate processor keeps above true interchange.
+  // This is the savings target — the comparison engine can beat it with ISO rates.
+  const processorMarkup = Math.max(0, effectiveRate - ESTIMATED_INTERCHANGE);
 
   return {
     merchant: {
@@ -103,14 +163,15 @@ function buildSyntheticStatement({ volume, effectiveRate, businessName, currentP
       debitVolume,
     },
     interchange: {
-      totalInterchangeFees:      volume * effectiveRate,
-      effectiveInterchangeRate:  effectiveRate,
+      // Pass-through interchange cost — same for all processors, not the savings target
+      totalInterchangeFees:     volume * ESTIMATED_INTERCHANGE,
+      effectiveInterchangeRate: ESTIMATED_INTERCHANGE,
     },
     processingFees: {
       authFee:                    null,
       batchFee:                   null,
       avsFee:                     null,
-      markupRate:                 null,
+      markupRate:                 processorMarkup,  // applied as volume-based fee in cost derivation
       totalMonthlyProcessingFees: 0,
       monthlyFees:                [],
     },
@@ -151,10 +212,12 @@ function buildSavingsExplanation(comparison) {
 export function runCallEstimate({ businessName, currentProcessor, rawVolume, rawRate }) {
   const volume = parseVolume(rawVolume);
   if (!volume) {
-    return { canEstimate: false, monthlySavings: null, annualSavings: null, savingsExplanation: null };
+    return { canEstimate: false, monthlySavings: null, annualSavings: null, savingsExplanation: null, formattedVolume: null, displayRate: null };
   }
 
-  const effectiveRate = parseRate(rawRate) ?? getDefaultRate(currentProcessor);
+  const effectiveRate  = parseRate(rawRate) ?? getDefaultRate(currentProcessor);
+  const formattedVolume = `$${volume.toLocaleString()}`;
+  const displayRate     = getDisplayRate(rawRate, effectiveRate, currentProcessor);
 
   try {
     const statement  = buildSyntheticStatement({ volume, effectiveRate, businessName, currentProcessor, posSystem: 'unknown' });
@@ -164,11 +227,13 @@ export function runCallEstimate({ businessName, currentProcessor, rawVolume, raw
 
     return {
       canEstimate,
-      monthlySavings:    canEstimate ? `$${rec.monthlySavings.toFixed(0)}` : null,
-      annualSavings:     canEstimate ? `$${rec.annualSavings.toFixed(0)}`  : null,
+      monthlySavings:     canEstimate ? `$${rec.monthlySavings.toFixed(0)}` : null,
+      annualSavings:      canEstimate ? `$${rec.annualSavings.toFixed(0)}`  : null,
       savingsExplanation: buildSavingsExplanation(comparison),
+      formattedVolume,
+      displayRate,
     };
   } catch (err) {
-    return { canEstimate: false, monthlySavings: null, annualSavings: null, savingsExplanation: null };
+    return { canEstimate: false, monthlySavings: null, annualSavings: null, savingsExplanation: null, formattedVolume, displayRate };
   }
 }
