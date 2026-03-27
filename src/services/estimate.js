@@ -8,6 +8,27 @@
 import { runComparison } from './comparison.js';
 
 // ---------------------------------------------------------------------------
+// Processor default rates (used when merchant didn't share their rate on call)
+// ---------------------------------------------------------------------------
+
+const PROCESSOR_DEFAULT_RATES = {
+  'square':  0.027,
+  'stripe':  0.029,
+  'paypal':  0.030,
+  'clover':  0.026,
+  'toast':   0.026,
+};
+
+function getDefaultRate(processorName) {
+  if (!processorName) return 0.027;
+  const key = processorName.toLowerCase().trim();
+  for (const [name, rate] of Object.entries(PROCESSOR_DEFAULT_RATES)) {
+    if (key.includes(name)) return rate;
+  }
+  return 0.027; // conservative generic default
+}
+
+// ---------------------------------------------------------------------------
 // Parsers
 // ---------------------------------------------------------------------------
 
@@ -117,12 +138,12 @@ function buildSavingsExplanation(comparison) {
  * @returns {{ canEstimate: boolean, monthlySavings: string|null, annualSavings: string|null, savingsExplanation: string|null }}
  */
 export function runCallEstimate({ businessName, currentProcessor, rawVolume, rawRate }) {
-  const volume        = parseVolume(rawVolume);
-  const effectiveRate = parseRate(rawRate);
-
-  if (!volume || !effectiveRate) {
+  const volume = parseVolume(rawVolume);
+  if (!volume) {
     return { canEstimate: false, monthlySavings: null, annualSavings: null, savingsExplanation: null };
   }
+
+  const effectiveRate = parseRate(rawRate) ?? getDefaultRate(currentProcessor);
 
   try {
     const statement  = buildSyntheticStatement({ volume, effectiveRate, businessName, currentProcessor, posSystem: 'unknown' });
