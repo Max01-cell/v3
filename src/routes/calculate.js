@@ -29,7 +29,8 @@ export default async function calculateRoutes(fastify) {
    * Returns formatted savings numbers Alex reads to the merchant.
    */
   fastify.post('/calculate-savings', async (request, reply) => {
-    const args = request.body?.args || {};
+    console.log('[calculate-savings] payload format:', request.body?.args ? 'args wrapper' : 'flat');
+    const args = request.body?.args || request.body;
     const { current_processor, current_rate, monthly_volume, business_type } = args;
 
     request.log.info(
