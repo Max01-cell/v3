@@ -539,7 +539,7 @@ function passesFaqGate(processor, posCategory) {
 /**
  * Apply month-to-month boarding rules to flattened entries.
  * - EPI Option B: requires_etf=true — remove entirely (6x multiplier is its only differentiator)
- * - EPI Option D: multiplier bonus is LOST without ETF — zero it out but keep the option
+ * - EPI Option D: multiplier already null in config (3x unavailable M2M) — no action needed
  * - Beacon Traditional with_advance: HIGH clawback risk — remove advance scenario
  *
  * @param {object[]} entries — from flattenProcessorTiers()
@@ -549,13 +549,6 @@ function applyMonthToMonthRules(entries) {
   return entries
     // Remove any tier flagged requires_etf — unusable for month-to-month merchants
     .filter(entry => !entry.requires_etf)
-    .map(entry => {
-      // EPI Option D: 3x multiplier requires ETF — zero it out, but the 65% split is still useful
-      if (entry.processorId === 'epi' && entry.tierId === 'D') {
-        return { ...entry, multiplier: null };
-      }
-      return entry;
-    })
     // Beacon Traditional with_advance: advance is clawed back if merchant leaves < 365 days
     // Month-to-month = merchant can leave anytime = high clawback risk — remove this scenario
     .filter(entry => !(

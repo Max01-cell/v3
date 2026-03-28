@@ -97,7 +97,7 @@
     },
     {
       "tierId": "D",
-      "tierName": "Option D — 65% Split + 3x Multiplier",
+      "tierName": "Option D — 65% Split",
       "residualSplit": 0.65,
       "riskResidualSplit": null,
       "authFee": 0.025,
@@ -115,11 +115,11 @@
       ],
       "signingBonus": 300,
       "advance": null,
-      "multiplier": { "factor": 3, "cap": 750, "floor": null },
+      "multiplier": null,
       "freeTerminal": true,
       "posPlacement": null,
       "bonusRequirements": { "statementFee": 5.00, "monthlyMinimum": 25.00 },
-      "notes": "Best for: balanced split + upfront. 3x on 2nd month residual, capped $750."
+      "notes": "Best for: merchants where higher residual split matters more than upfront bonus. 65% split, $300 activation bonus. (3x multiplier not available for month-to-month accounts.)"
     },
     {
       "tierId": "E",
