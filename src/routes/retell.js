@@ -12,6 +12,7 @@ import { requireRetellSignature } from '../middleware/retell-verify.js';
 import { upsertLead, updateLeadStatus, saveCallRecord } from '../services/leads.js';
 import { sendUploadLink, sendPostCallFollowUp, sendLeadCaptureNotification } from '../services/email.js';
 import { runCallEstimate } from '../services/estimate.js';
+import { upsertMerchant } from '../services/merchants.js';
 
 export default async function retellRoutes(fastify) {
   // Apply signature verification to all routes in this plugin
@@ -130,15 +131,16 @@ export default async function retellRoutes(fastify) {
         const hasEmail = lead.ownerEmail && lead.ownerEmail !== 'none' && lead.ownerEmail.trim() !== '';
         console.log('[webhook] hasEmail:', hasEmail, '| ownerEmail:', lead.ownerEmail);
 
-        if (hasEmail) {
-          const estimate = runCallEstimate({
-            businessName:     lead.businessName,
-            currentProcessor: lead.currentProcessor,
-            rawVolume:        lead.monthlyVolume,
-            rawRate:          lead.currentRate,
-          });
-          console.log('[webhook] estimate:', JSON.stringify(estimate));
+        // Run estimate for all calls (needed for pipeline + email)
+        const estimate = runCallEstimate({
+          businessName:     lead.businessName,
+          currentProcessor: lead.currentProcessor,
+          rawVolume:        lead.monthlyVolume,
+          rawRate:          lead.currentRate,
+        });
+        console.log('[webhook] estimate:', JSON.stringify(estimate));
 
+        if (hasEmail) {
           if (estimate.isLockedEcosystem) {
             console.log('[webhook] locked ecosystem — skipping savings follow-up for', lead.currentProcessor);
           } else {
@@ -169,6 +171,48 @@ export default async function retellRoutes(fastify) {
           }
         } else {
           console.log('[webhook] no valid email — skipping sends');
+        }
+
+        // Upsert merchant into pipeline for every analyzed call
+        try {
+          const bestOption = estimate?.engineBreakdown?.processorRows?.find(r => r.best)
+            || estimate?.engineBreakdown?.processorRows?.[0];
+          const monthlyNum = estimate?.monthlySavings
+            ? parseFloat(estimate.monthlySavings.replace(/[$,]/g, '')) : null;
+          const annualNum = estimate?.annualSavings
+            ? parseFloat(estimate.annualSavings.replace(/[$,]/g, '')) : null;
+
+          let stage = 'new_lead';
+          if (lead.callOutcome === 'not_interested') stage = 'dead';
+          else if (hasEmail) stage = 'email_sent';
+
+          upsertMerchant({
+            ownerName:               lead.ownerName,
+            ownerEmail:              lead.ownerEmail || null,
+            ownerPhone:              call?.to_number || null,
+            businessName:            lead.businessName,
+            businessType:            lead.businessType,
+            city:                    lead.city,
+            currentProcessor:        lead.currentProcessor,
+            currentRate:             lead.currentRate,
+            monthlyVolume:           lead.monthlyVolume,
+            contractStatus:          lead.contractStatus,
+            estimatedMonthlySavings: monthlyNum,
+            estimatedAnnualSavings:  annualNum,
+            matchedIso:              bestOption?.processorName || null,
+            matchedTier:             bestOption?.tierName || null,
+            ourResidual:             bestOption?.ourResidual || null,
+            merchantFloorCost:       bestOption?.floorCost || null,
+            stage,
+            retellCallId:            call?.call_id || null,
+            callRecordingUrl:        call?.recording_url || null,
+            leadQuality:             lead.leadQuality,
+            objectionGiven:          lead.objectionGiven,
+            callbackTime:            lead.callbackTime,
+          });
+          console.log('[webhook] merchant upserted | stage:', stage);
+        } catch (err) {
+          console.error('[webhook] MERCHANT UPSERT ERROR:', err?.message);
         }
       }
     } catch (err) {

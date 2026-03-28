@@ -16,6 +16,8 @@ import outboundRoutes from './routes/outbound.js';
 import statementRoutes from './routes/statement.js';
 import healthRoutes from './routes/health.js';
 import calculateRoutes from './routes/calculate.js';
+import merchantRoutes from './routes/merchants.js';
+import dashboardRoutes from './routes/dashboard.js';
 
 // Validate env vars (warns in dev, throws in production)
 validateConfig();
@@ -65,6 +67,8 @@ app.register(outboundRoutes, { prefix: '/api/outbound' });
 app.register(statementRoutes, { prefix: '/api/statement' });
 app.register(healthRoutes, { prefix: '/api' });
 app.register(calculateRoutes, { prefix: '/api' });
+app.register(merchantRoutes, { prefix: '/api' });
+app.register(dashboardRoutes);
 
 // ---------------------------------------------------------------------------
 // Start

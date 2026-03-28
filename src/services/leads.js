@@ -57,8 +57,55 @@ export function initDatabase() {
   if (!existingCols.includes('boarded_date'))          db.exec('ALTER TABLE leads ADD COLUMN boarded_date TEXT');
   if (!existingCols.includes('non_solicit_permanent')) db.exec('ALTER TABLE leads ADD COLUMN non_solicit_permanent INTEGER DEFAULT 0');
 
+  // Merchants pipeline table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS merchants (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      created_at DATETIME DEFAULT (datetime('now')),
+      updated_at DATETIME DEFAULT (datetime('now')),
+      owner_name TEXT,
+      owner_email TEXT,
+      owner_phone TEXT,
+      business_name TEXT,
+      business_type TEXT,
+      city TEXT,
+      current_processor TEXT,
+      current_rate TEXT,
+      monthly_volume TEXT,
+      contract_status TEXT,
+      estimated_monthly_savings REAL,
+      estimated_annual_savings REAL,
+      matched_iso TEXT,
+      matched_tier TEXT,
+      our_residual REAL,
+      merchant_floor_cost REAL,
+      stage TEXT DEFAULT 'new_lead',
+      app_sent_date DATETIME,
+      app_signed_date DATETIME,
+      submitted_to_iso_date DATETIME,
+      approved_date DATETIME,
+      mid_number TEXT,
+      terminal_id TEXT,
+      go_live_date DATETIME,
+      first_statement_date DATETIME,
+      first_residual_amount REAL,
+      monthly_residual_amount REAL,
+      retell_call_id TEXT,
+      call_recording_url TEXT,
+      call_transcript TEXT,
+      lead_quality TEXT,
+      objection_given TEXT,
+      callback_time TEXT,
+      notes TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_merchants_stage ON merchants(stage);
+    CREATE INDEX IF NOT EXISTS idx_merchants_email ON merchants(owner_email);
+  `);
+
   return db;
 }
+
+export function getDb() { return db; }
 
 export function upsertLead(data) {
   const id = data.id || randomUUID();

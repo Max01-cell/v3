@@ -225,6 +225,9 @@ function buildEngineBreakdown({ volume, effectiveRate, rawRate, currentProcessor
     .slice()
     .sort((a, b) => b.merchantSavings - a.merchantSavings)
     .map(c => ({
+      processorId:      c.processorId,
+      processorName:    c.processorName,
+      tierName:         c.tierName,
       name:             `${c.processorName} — ${c.tierName}`,
       floorCost:        c.floorCost,
       merchantSavings:  c.merchantSavings,
