@@ -153,7 +153,7 @@ const CNP_PERCENT = 10;
 // Blended card-present interchange estimate (Visa/MC/Discover average).
 // Split from effectiveRate so the comparison engine can correctly model
 // processor markup (what Square/Stripe keep above interchange) as the savings target.
-const ESTIMATED_INTERCHANGE = 0.018;
+const ESTIMATED_INTERCHANGE = 0.019;
 
 function buildSyntheticStatement({ volume, effectiveRate, businessName, currentProcessor, posSystem }) {
   const totalTransactions    = Math.round(volume / AVG_TICKET);

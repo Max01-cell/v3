@@ -19,7 +19,7 @@
   "tiers": [
     {
       "tierId": "cardconnect",
-      "tierName": "CardConnect Standard",
+      "tierName": "CardConnect Traditional (60% Split)",
       "routing_condition": "clover_pos",
       "residualSplit": 0.60,
       "riskResidualSplit": null,
@@ -49,7 +49,7 @@
     },
     {
       "tierId": "flex-sell",
-      "tierName": "Flex Sell (Free Clover Program)",
+      "tierName": "CardConnect Flex Sell (50% Split)",
       "routing_condition": "needs_pos_volume_gte_15k",
       "residualSplit": 0.50,
       "riskResidualSplit": null,
@@ -90,7 +90,7 @@
     },
     {
       "tierId": "tsys-payarc",
-      "tierName": "TSYS/Payarc Platform",
+      "tierName": "Beacon TSYS Platform (60% Split)",
       "residualSplit": 0.60,
       "riskResidualSplit": null,
       "authFee": 0.03,
