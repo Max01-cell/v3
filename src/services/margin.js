@@ -1,6 +1,6 @@
 /**
  * Dynamic margin calculator.
- * Revenue model: merchant saves 65-75%, we keep 25-35%.
+ * Revenue model: merchant saves 65-70%, we keep 30-35%.
  * Split depends on monthly card volume.
  */
 
@@ -15,9 +15,8 @@ function round2(n) {
  * @returns {{ merchantShare: number, ourShare: number, label: string }}
  */
 export function getMarginTier(totalVolume) {
-  if (totalVolume > 75000) {
-    return { merchantShare: 0.75, ourShare: 0.25, label: '75/25' };
-  }
+  // 70/30 is the maximum split — 75/25 was removed (all merchants are M2M,
+  // and 70% is the right merchant share at any volume above $25k)
   if (totalVolume >= 25000) {
     return { merchantShare: 0.70, ourShare: 0.30, label: '70/30' };
   }

@@ -139,22 +139,26 @@ export default async function retellRoutes(fastify) {
           });
           console.log('[webhook] estimate:', JSON.stringify(estimate));
 
-          try {
-            const followUpResult = await sendPostCallFollowUp({
-              email:             lead.ownerEmail,
-              ownerName:         lead.ownerName,
-              currentProcessor:  lead.currentProcessor,
-              monthlyVolume:     lead.monthlyVolume,
-              currentRate:       lead.currentRate,
-              monthlySavings:     estimate.monthlySavings,
-              annualSavings:      estimate.annualSavings,
-              savingsExplanation: estimate.savingsExplanation,
-              formattedVolume:    estimate.formattedVolume,
-              displayRate:        estimate.displayRate,
-            });
-            console.log('[webhook] follow-up sent:', JSON.stringify(followUpResult));
-          } catch (err) {
-            console.error('[webhook] RESEND ERROR (follow-up):', err?.message, err?.statusCode);
+          if (estimate.isLockedEcosystem) {
+            console.log('[webhook] locked ecosystem — skipping savings follow-up for', lead.currentProcessor);
+          } else {
+            try {
+              const followUpResult = await sendPostCallFollowUp({
+                email:             lead.ownerEmail,
+                ownerName:         lead.ownerName,
+                currentProcessor:  lead.currentProcessor,
+                monthlyVolume:     lead.monthlyVolume,
+                currentRate:       lead.currentRate,
+                monthlySavings:     estimate.monthlySavings,
+                annualSavings:      estimate.annualSavings,
+                savingsExplanation: estimate.savingsExplanation,
+                formattedVolume:    estimate.formattedVolume,
+                displayRate:        estimate.displayRate,
+              });
+              console.log('[webhook] follow-up sent:', JSON.stringify(followUpResult));
+            } catch (err) {
+              console.error('[webhook] RESEND ERROR (follow-up):', err?.message, err?.statusCode);
+            }
           }
 
           try {

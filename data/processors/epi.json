@@ -72,6 +72,8 @@
     {
       "tierId": "C",
       "tierName": "Option C — Free Exatouch POS Placement",
+      "routing_condition": "needs_exatouch_pos",
+      "requires_pos_need": true,
       "residualSplit": 0.50,
       "riskResidualSplit": null,
       "authFee": 0.025,

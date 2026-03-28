@@ -20,6 +20,7 @@
     {
       "tierId": "cardconnect",
       "tierName": "CardConnect Standard",
+      "routing_condition": "clover_pos",
       "residualSplit": 0.60,
       "riskResidualSplit": null,
       "authFee": 0.03,
@@ -49,6 +50,7 @@
     {
       "tierId": "flex-sell",
       "tierName": "Flex Sell (Free Clover Program)",
+      "routing_condition": "needs_pos_volume_gte_15k",
       "residualSplit": 0.50,
       "riskResidualSplit": null,
       "authFee": 0.03,

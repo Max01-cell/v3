@@ -310,6 +310,11 @@ function compareOneEntry(entry, statement, currentCost, posCategory, difficulty)
     posCompatible: true, // only compatible entries reach this function
     difficulty,
 
+    // Non-solicitation warning (Beacon has permanent, high-penalty clause)
+    nonSolicitWarning: entry.contract?.nonSolicitationPenalty?.includes('PERMANENT')
+      ? entry.contract.nonSolicitationPenalty
+      : null,
+
     // Warnings
     warnings,
 
@@ -559,6 +564,37 @@ function applyMonthToMonthRules(entries) {
 }
 
 // ---------------------------------------------------------------------------
+// Routing conditions — filter entries based on merchant context
+// ---------------------------------------------------------------------------
+
+/**
+ * Filter entries based on their routing_condition field.
+ * Entries without a routing_condition (or "default") always pass.
+ *
+ * Supported conditions:
+ *   "clover_pos"               — only when merchant has Clover hardware
+ *   "needs_pos_volume_gte_15k" — only when merchant needs new POS AND volume >= $15k
+ *   "needs_exatouch_pos"       — only when merchant needs new POS (any volume)
+ *
+ * @param {object[]} entries
+ * @param {{ posCategory: string, totalVolume: number, hardwarePreference: string }} context
+ * @returns {object[]}
+ */
+function applyRoutingConditions(entries, { posCategory, totalVolume, hardwarePreference }) {
+  const needsPos = hardwarePreference === 'wants_new';
+
+  return entries.filter(entry => {
+    const cond = entry.routing_condition;
+    if (!cond || cond === 'default') return true;
+    if (cond === 'clover_pos') return posCategory === 'clover';
+    if (cond === 'needs_pos_volume_gte_15k') return needsPos && totalVolume >= 15000;
+    if (cond === 'needs_exatouch_pos') return needsPos;
+    // Unknown condition — include for safety (don't silently drop options)
+    return true;
+  });
+}
+
+// ---------------------------------------------------------------------------
 // STEP 9: Main orchestration + ranking
 // ---------------------------------------------------------------------------
 
@@ -615,7 +651,14 @@ export function runComparison(statement, merchantPosSystem, hardwarePreference =
 
   // Flatten tiers and apply month-to-month rules
   const allEntries = flattenProcessorTiers(faqEligible);
-  const entries = applyMonthToMonthRules(allEntries);
+  const m2mEntries = applyMonthToMonthRules(allEntries);
+
+  // Apply routing conditions — filter entries to those valid for this merchant context
+  const entries = applyRoutingConditions(m2mEntries, {
+    posCategory,
+    totalVolume: statement.volume.totalVolume,
+    hardwarePreference,
+  });
 
   // Step 2: Derive current total processing cost
   const { cost: currentCost, warnings: costWarnings } = deriveCurrentProcessingCost(statement);

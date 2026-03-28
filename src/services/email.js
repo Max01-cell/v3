@@ -319,7 +319,10 @@ export async function sendLeadCaptureNotification({ ownerName, ownerEmail, busin
     const bd = engineBreakdown;
     const processorRowsHtml = bd.processorRows.map(p => `
       <tr style="${p.best ? 'background-color:#f0fdf4;' : ''}">
-        <td style="padding:8px 12px;font-size:13px;color:#1a1a1a;border-top:1px solid #eeeeee;">${p.name}${p.best ? ' ★' : ''}</td>
+        <td style="padding:8px 12px;font-size:13px;color:#1a1a1a;border-top:1px solid #eeeeee;">
+          ${p.name}${p.best ? ' ★' : ''}
+          ${p.nonSolicitWarning ? `<br><span style="font-size:11px;color:#c62828;font-weight:600;">⚠ PERM NON-SOLICIT — 39x penalty</span>` : ''}
+        </td>
         <td style="padding:8px 12px;font-size:13px;color:#1a1a1a;text-align:right;border-top:1px solid #eeeeee;">$${p.floorCost.toFixed(2)}/mo</td>
         <td style="padding:8px 12px;font-size:13px;color:${p.merchantSavings > 0 ? '#2e7d32' : '#c62828'};font-weight:600;text-align:right;border-top:1px solid #eeeeee;">${p.merchantSavings > 0 ? '+' : ''}$${p.merchantSavings.toFixed(0)} saved</td>
         <td style="padding:8px 12px;font-size:13px;color:#999999;text-align:right;border-top:1px solid #eeeeee;">$${p.ourResidual.toFixed(0)} residual</td>

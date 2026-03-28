@@ -6,6 +6,7 @@
  */
 
 import { runComparison } from './comparison.js';
+import { classifyPOS } from './pos.js';
 
 // Assumed average ticket size — used for per-transaction fee → effective rate conversion
 const AVG_TICKET = 50;
@@ -224,11 +225,12 @@ function buildEngineBreakdown({ volume, effectiveRate, rawRate, currentProcessor
     .slice()
     .sort((a, b) => b.merchantSavings - a.merchantSavings)
     .map(c => ({
-      name:           `${c.processorName} — ${c.tierName}`,
-      floorCost:      c.floorCost,
-      merchantSavings: c.merchantSavings,
-      ourResidual:    c.ourResidual,
-      best:           !!c.bestForMerchant,
+      name:             `${c.processorName} — ${c.tierName}`,
+      floorCost:        c.floorCost,
+      merchantSavings:  c.merchantSavings,
+      ourResidual:      c.ourResidual,
+      best:             !!c.bestForMerchant,
+      nonSolicitWarning: c.nonSolicitWarning || null,
     }));
 
   return {
@@ -271,9 +273,25 @@ function buildSavingsExplanation(comparison) {
  * @returns {{ canEstimate: boolean, monthlySavings: string|null, annualSavings: string|null, savingsExplanation: string|null }}
  */
 export function runCallEstimate({ businessName, currentProcessor, rawVolume, rawRate }) {
+  // Check for processor-locked ecosystems FIRST — no estimate possible, no savings email
+  const { category: posCategory } = classifyPOS(currentProcessor || '');
+  if (posCategory === 'processorLocked') {
+    return {
+      canEstimate: false,
+      isLockedEcosystem: true,
+      lockedProcessor: currentProcessor,
+      monthlySavings: null,
+      annualSavings: null,
+      savingsExplanation: null,
+      formattedVolume: null,
+      displayRate: null,
+      engineBreakdown: null,
+    };
+  }
+
   const volume = parseVolume(rawVolume);
   if (!volume) {
-    return { canEstimate: false, monthlySavings: null, annualSavings: null, savingsExplanation: null, formattedVolume: null, displayRate: null };
+    return { canEstimate: false, isLockedEcosystem: false, monthlySavings: null, annualSavings: null, savingsExplanation: null, formattedVolume: null, displayRate: null, engineBreakdown: null };
   }
 
   const effectiveRate  = parseRate(rawRate) ?? getDefaultRate(currentProcessor);
@@ -282,12 +300,14 @@ export function runCallEstimate({ businessName, currentProcessor, rawVolume, raw
 
   try {
     const statement  = buildSyntheticStatement({ volume, effectiveRate, businessName, currentProcessor, posSystem: 'unknown' });
-    const comparison = runComparison(statement, 'unknown', 'open_to_switch');
+    // Pass currentProcessor as posSystem so the engine can detect locked ecosystems
+    const comparison = runComparison(statement, currentProcessor || 'unknown', 'open_to_switch');
     const rec        = comparison.recommendation;
     const canEstimate = rec.action === 'SWITCH';
 
     return {
       canEstimate,
+      isLockedEcosystem: false,
       monthlySavings:     canEstimate ? `$${rec.monthlySavings.toFixed(0)}` : null,
       annualSavings:      canEstimate ? `$${rec.annualSavings.toFixed(0)}`  : null,
       savingsExplanation: buildSavingsExplanation(comparison),
@@ -296,6 +316,6 @@ export function runCallEstimate({ businessName, currentProcessor, rawVolume, raw
       engineBreakdown:    buildEngineBreakdown({ volume, effectiveRate, rawRate, currentProcessor, comparison }),
     };
   } catch (err) {
-    return { canEstimate: false, monthlySavings: null, annualSavings: null, savingsExplanation: null, formattedVolume, displayRate, engineBreakdown: null };
+    return { canEstimate: false, isLockedEcosystem: false, monthlySavings: null, annualSavings: null, savingsExplanation: null, formattedVolume, displayRate, engineBreakdown: null };
   }
 }
