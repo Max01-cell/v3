@@ -137,7 +137,11 @@ function parseRate(raw) {
  * If merchant provided their rate, show it. If we defaulted, show the assumed rate.
  */
 function getDisplayRate(rawRate, effectiveRate, processorName) {
-  if (parseRate(rawRate) !== null) return rawRate; // merchant provided it
+  if (parseRate(rawRate) !== null) {
+    // Strip transcription noise — extract just the numeric rate
+    const numStr = String(rawRate).match(/[\d.]+/)?.[0];
+    return numStr ? `${numStr}%` : `${(parseRate(rawRate) * 100).toFixed(1)}%`;
+  }
   const pct = (effectiveRate * 100).toFixed(1);
   const label = processorName ? `${processorName} est.` : 'est.';
   return `~${pct}% (${label})`;
@@ -261,8 +265,12 @@ function buildSavingsExplanation(comparison) {
 
   const currentRatePct  = ((comparison.currentCost / comparison.totalVolume) * 100).toFixed(2);
   const proposedRatePct = ((best.proposedCost / comparison.totalVolume) * 100).toFixed(2);
+  const currentCostFmt  = `$${Math.round(comparison.currentCost).toLocaleString()}`;
+  const proposedCostFmt = `$${Math.round(best.proposedCost).toLocaleString()}`;
+  const savingsFmt      = `$${best.merchantSavings.toFixed(0)}`;
+  const volumeFmt       = `$${Math.round(comparison.totalVolume).toLocaleString()}`;
 
-  return `Your current effective rate is around ${currentRatePct}%. Through one of our processing partners we can get that down to approximately ${proposedRatePct}% — a difference of $${best.merchantSavings.toFixed(0)}/month based on your volume. The switch takes about 10 minutes and there's zero downtime to your business.`;
+  return `Your current effective rate is around ${currentRatePct}%. Based on your volume of ${volumeFmt}/month, you're paying approximately ${currentCostFmt} in processing fees. Through one of our processing partners, we can bring that down to approximately ${proposedCostFmt}/month — an effective rate of about ${proposedRatePct}%. That's ${savingsFmt} back in your pocket every month. The switch takes about 10 minutes and there's zero downtime to your business.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -278,6 +286,7 @@ function buildSavingsExplanation(comparison) {
 export function runCallEstimate({ businessName, currentProcessor, rawVolume, rawRate }) {
   // Check for processor-locked ecosystems FIRST — no estimate possible, no savings email
   const { category: posCategory } = classifyPOS(currentProcessor || '');
+  console.log('[estimate] POS classification:', currentProcessor, '→', posCategory);
   if (posCategory === 'processorLocked') {
     return {
       canEstimate: false,
@@ -293,11 +302,15 @@ export function runCallEstimate({ businessName, currentProcessor, rawVolume, raw
   }
 
   const volume = parseVolume(rawVolume);
+  console.log('[estimate] parseVolume:', rawVolume, '→', volume);
   if (!volume) {
+    console.log('[estimate] volume is null — bailing out');
     return { canEstimate: false, isLockedEcosystem: false, monthlySavings: null, annualSavings: null, savingsExplanation: null, formattedVolume: null, displayRate: null, engineBreakdown: null };
   }
 
-  const effectiveRate  = parseRate(rawRate) ?? getDefaultRate(currentProcessor);
+  const parsedRate = parseRate(rawRate);
+  const effectiveRate  = parsedRate ?? getDefaultRate(currentProcessor);
+  console.log('[estimate] parseRate:', rawRate, '→', parsedRate, '| effectiveRate:', effectiveRate);
   const formattedVolume = `$${volume.toLocaleString()}`;
   const displayRate     = getDisplayRate(rawRate, effectiveRate, currentProcessor);
 
@@ -306,17 +319,28 @@ export function runCallEstimate({ businessName, currentProcessor, rawVolume, raw
     // Pass currentProcessor as posSystem so the engine can detect locked ecosystems
     const comparison = runComparison(statement, currentProcessor || 'unknown', 'open_to_switch');
     const rec        = comparison.recommendation;
-    const canEstimate = rec.action === 'SWITCH';
+
+    console.log('[estimate] recommendation action:', rec.action, '| monthlySavings:', rec.monthlySavings, '| reason:', rec.reason);
+
+    // canEstimate = true whenever the engine found positive savings, even if the
+    // recommendation is NEGOTIATE_EXISTING (locked POS below $500 threshold).
+    // The mid-call quote just needs a number — the recommendation action is for
+    // pipeline/email logic, not for whether we can quote savings.
+    const canEstimate = rec.monthlySavings > 0;
+    const best = comparison.comparisons.find(c => c.bestForMerchant) || comparison.comparisons[0];
 
     return {
       canEstimate,
       isLockedEcosystem: false,
-      monthlySavings:     canEstimate ? `$${rec.monthlySavings.toFixed(0)}` : null,
-      annualSavings:      canEstimate ? `$${rec.annualSavings.toFixed(0)}`  : null,
-      savingsExplanation: buildSavingsExplanation(comparison),
+      monthlySavings:      canEstimate ? `$${rec.monthlySavings.toFixed(0)}` : null,
+      annualSavings:       canEstimate ? `$${rec.annualSavings.toFixed(0)}`  : null,
+      savingsExplanation:  buildSavingsExplanation(comparison),
       formattedVolume,
       displayRate,
-      engineBreakdown:    buildEngineBreakdown({ volume, effectiveRate, rawRate, currentProcessor, comparison }),
+      currentMonthlyCost:  Math.round(comparison.currentCost),
+      proposedMonthlyCost: canEstimate && best ? Math.round(best.proposedCost) : null,
+      proposedRatePct:     canEstimate && best ? ((best.proposedCost / volume) * 100).toFixed(2) : null,
+      engineBreakdown:     buildEngineBreakdown({ volume, effectiveRate, rawRate, currentProcessor, comparison }),
     };
   } catch (err) {
     return { canEstimate: false, isLockedEcosystem: false, monthlySavings: null, annualSavings: null, savingsExplanation: null, formattedVolume, displayRate, engineBreakdown: null };
